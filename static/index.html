@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 短视频生成器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #000;
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 20px; font-weight: 600; }
+    header span { font-size: 13px; color: #aaa; }
+
+    .container {
+      max-width: 680px;
+      margin: 40px auto;
+      padding: 0 20px 60px;
+    }
+
+    /* ── 卡片 ── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .num {
+      width: 24px; height: 24px;
+      background: #000; color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── 图片上传区 ── */
+    .upload-area {
+      border: 2px dashed #ddd;
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: #000;
+      background: #fafafa;
+    }
+    .upload-area input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-text { font-size: 15px; color: #333; margin-bottom: 4px; }
+    .upload-hint { font-size: 13px; color: #999; }
+
+    .preview-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .preview-wrap img {
+      max-height: 240px;
+      max-width: 100%;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    .preview-wrap .change-btn {
+      font-size: 13px; color: #666;
+      background: none; border: 1px solid #ddd;
+      border-radius: 6px; padding: 4px 12px;
+      cursor: pointer;
+    }
+    .preview-wrap .change-btn:hover { border-color: #999; }
+
+    /* ── 表单 ── */
+    label {
+      display: block;
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+    input[type=text], textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1d1d1f;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type=text]:focus, textarea:focus { border-color: #000; }
+    textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+
+    /* ── 生成按钮 ── */
+    .generate-btn {
+      width: 100%;
+      padding: 16px;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+    .generate-btn:hover { opacity: 0.85; }
+    .generate-btn:active { transform: scale(0.99); }
+    .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── 进度卡片 ── */
+    #progress-section { display: none; }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+      position: relative;
+    }
+    .step-item:last-child { border-bottom: none; }
+
+    .step-icon {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-icon.pending   { background: #f0f0f0; color: #aaa; }
+    .step-icon.active    { background: #000; color: #fff; animation: pulse 1.2s infinite; }
+    .step-icon.done      { background: #34c759; color: #fff; }
+    .step-icon.failed    { background: #ff3b30; color: #fff; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .step-content { flex: 1; }
+    .step-label { font-size: 15px; font-weight: 500; color: #1d1d1f; }
+    .step-desc  { font-size: 13px; color: #999; margin-top: 2px; }
+    .step-desc.active { color: #555; }
+
+    /* ── 结果区 ── */
+    #result-section { display: none; }
+
+    .result-info {
+      background: #f5f5f7;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .result-info p { font-size: 13px; color: #666; line-height: 1.7; }
+    .result-info strong { color: #333; }
+
+    .download-btn {
+      width: 100%;
+      padding: 16px;
+      background: #34c759;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .download-btn:hover { opacity: 0.85; }
+
+    .restart-btn {
+      width: 100%;
+      padding: 12px;
+      background: none;
+      color: #555;
+      border: 1.5px solid #ddd;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: border-color 0.2s;
+    }
+    .restart-btn:hover { border-color: #999; }
+
+    /* ── 错误 ── */
+    .error-box {
+      background: #fff2f2;
+      border: 1px solid #ffcccc;
+      border-radius: 10px;
+      padding: 14px;
+      color: #c00;
+      font-size: 14px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    /* ── 成本提示 ── */
+    .cost-tip {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎬 AI 短视频生成器</h1>
+    <span>输入产品照片，自动生成 TikTok 带货视频</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── 上传表单 ── -->
+  <div id="form-section">
+
+    <!-- 1. 上传图片 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="num">1</span> 上传产品图片
+      </div>
+
+      <div class="upload-area" id="upload-area">
+        <input type="file" id="image-input" accept="image/*">
+        <div id="upload-placeholder">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">点击上传 / 拖拽图片到此处</div>
+          <div class="upload-hint">支持 JPG、PNG，建议使用白底或清晰背景</div>
+        </div>
+        <div class="preview-wrap" id="preview-wrap">
+          <img id="image-preview" src="" alt="预览">
+          <button class="change-btn" onclick="resetImage(event)">重新选择图片</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 产品信息 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="num">2</span> 填写产品信息
+      </div>
+
+      <label>产品名称</label>
+      <input type="text" id="product-name"
+        placeholder="例如：智能手表 V8 Pro">
+
+      <div style="height:16px"></div>
+
+      <label>核心卖点 <span style="font-weight:400;color:#bbb">（每行写一个，至少填写 1 个）</span></label>
+      <textarea id="selling-points"
+        placeholder="30天超长续航&#10;50米防水&#10;24小时心率监测&#10;100+ 运动模式"></textarea>
+    </div>
+
+    <!-- 生成按钮 -->
+    <button class="generate-btn" id="generate-btn" onclick="startGeneration()">
+      开始生成视频
+    </button>
+    <div class="cost-tip">每次生成约花费 $0.31（含图片处理 + 视频生成）</div>
+
+  </div>
+
+  <!-- ── 进度展示 ── -->
+  <div id="progress-section">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:4px">
+        ⏳ 正在生成中，请勿关闭页面...
+      </div>
+      <p style="font-size:13px;color:#999;margin-bottom:20px">
+        整个流程约需 3-5 分钟，请耐心等待
+      </p>
+
+      <div class="steps">
+        <div class="step-item" id="step-1">
+          <div class="step-icon pending" id="icon-1">1</div>
+          <div class="step-content">
+            <div class="step-label">分析产品图片</div>
+            <div class="step-desc" id="desc-1">GPT-4o 识别产品外观，生成白底图</div>
+          </div>
+        </div>
+        <div class="step-item" id="step-2">
+          <div class="step-icon pending" id="icon-2">2</div>
+          <div class="step-content">
+            <div class="step-label">生成视频脚本</div>
+            <div class="step-desc" id="desc-2">GPT-4o 生成 TikTok 脚本和视频描述词</div>
+          </div>
+        </div>
+        <div class="step-item" id="step-3">
+          <div class="step-icon pending" id="icon-3">3</div>
+          <div class="step-content">
+            <div class="step-label">AI 生成视频</div>
+            <div class="step-desc" id="desc-3">Creatok 渲染 15 秒 9:16 短视频</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-box" id="error-box"></div>
+    </div>
+  </div>
+
+  <!-- ── 完成 / 下载 ── -->
+  <div id="result-section">
+    <div class="card">
+      <div class="card-title" style="color:#34c759">
+        ✅ 视频生成完成！
+      </div>
+
+      <div class="result-info">
+        <p>
+          <strong>产品：</strong><span id="result-product"></span><br>
+          视频规格：MP4 / 9:16 竖版 / 15 秒<br>
+          可直接发布到 TikTok、抖音、Instagram Reels
+        </p>
+      </div>
+
+      <button class="download-btn" id="download-btn" onclick="downloadVideo()">
+        ⬇️ 下载视频
+      </button>
+
+      <button class="restart-btn" onclick="restartForm()">
+        重新生成另一个视频
+      </button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  let currentJobId = null;
+  let pollTimer = null;
+
+  // ── 图片上传处理 ──────────────────────────────────────────
+
+  const uploadArea = document.getElementById('upload-area');
+  const imageInput = document.getElementById('image-input');
+
+  uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
+  });
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('drag-over');
+  });
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) showPreview(file);
+  });
+
+  imageInput.addEventListener('change', () => {
+    if (imageInput.files[0]) showPreview(imageInput.files[0]);
+  });
+
+  function showPreview(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('image-preview').src = e.target.result;
+      document.getElementById('upload-placeholder').style.display = 'none';
+      document.getElementById('preview-wrap').style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetImage(e) {
+    e.stopPropagation();
+    imageInput.value = '';
+    document.getElementById('image-preview').src = '';
+    document.getElementById('upload-placeholder').style.display = 'block';
+    document.getElementById('preview-wrap').style.display = 'none';
+  }
+
+  // ── 开始生成 ──────────────────────────────────────────────
+
+  async function startGeneration() {
+    const imageFile = imageInput.files[0];
+    const productName = document.getElementById('product-name').value.trim();
+    const sellingPoints = document.getElementById('selling-points').value.trim();
+
+    // 前端校验
+    if (!imageFile) {
+      alert('请先上传产品图片');
+      return;
+    }
+    if (!productName) {
+      alert('请填写产品名称');
+      return;
+    }
+    if (!sellingPoints) {
+      alert('请至少填写一个卖点');
+      return;
+    }
+
+    // 构建 multipart 表单
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    formData.append('product_name', productName);
+    formData.append('selling_points', sellingPoints);
+
+    // 锁定按钮
+    const btn = document.getElementById('generate-btn');
+    btn.disabled = true;
+    btn.textContent = '提交中...';
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || '提交失败');
+      }
+
+      const data = await res.json();
+      currentJobId = data.job_id;
+
+      // 切换到进度页
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('progress-section').style.display = 'block';
+
+      // 开始轮询
+      pollTimer = setInterval(pollStatus, 4000);
+      pollStatus(); // 立即查一次
+
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = '开始生成视频';
+      alert('错误：' + err.message);
+    }
+  }
+
+  // ── 轮询状态 ──────────────────────────────────────────────
+
+  async function pollStatus() {
+    if (!currentJobId) return;
+
+    try {
+      const res = await fetch(`/api/status/${currentJobId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      updateSteps(data.step, data.status);
+
+      if (data.status === 'success') {
+        clearInterval(pollTimer);
+        showResult(data.product_name);
+
+      } else if (data.status === 'failed') {
+        clearInterval(pollTimer);
+        showError(data.error || '生成失败，请重试');
+      }
+
+    } catch (e) {
+      // 网络错误，等下次轮询
+    }
+  }
+
+  function updateSteps(currentStep, status) {
+    for (let i = 1; i <= 3; i++) {
+      const icon = document.getElementById(`icon-${i}`);
+      const desc = document.getElementById(`desc-${i}`);
+
+      icon.className = 'step-icon';
+      desc.className = 'step-desc';
+
+      if (status === 'failed' && i === currentStep) {
+        icon.className += ' failed';
+        icon.textContent = '✕';
+      } else if (i < currentStep || (status === 'success' && i <= 3)) {
+        icon.className += ' done';
+        icon.textContent = '✓';
+      } else if (i === currentStep) {
+        icon.className += ' active';
+        icon.textContent = i;
+        desc.className += ' active';
+      } else {
+        icon.textContent = i;
+      }
+    }
+  }
+
+  // ── 完成 ──────────────────────────────────────────────────
+
+  function showResult(productName) {
+    updateSteps(3, 'success');
+    document.getElementById('progress-section').style.display = 'none';
+    document.getElementById('result-section').style.display = 'block';
+    document.getElementById('result-product').textContent = productName || '';
+  }
+
+  function showError(message) {
+    const box = document.getElementById('error-box');
+    box.style.display = 'block';
+    box.textContent = '❌ ' + message;
+    // 把第 3 步标红
+    const currentStep = document.getElementById('icon-3');
+    if (currentStep.classList.contains('active')) {
+      currentStep.className = 'step-icon failed';
+      currentStep.textContent = '✕';
+    }
+  }
+
+  function downloadVideo() {
+    if (!currentJobId) return;
+    window.location.href = `/api/download/${currentJobId}`;
+  }
+
+  function restartForm() {
+    clearInterval(pollTimer);
+    currentJobId = null;
+
+    // 重置表单
+    document.getElementById('product-name').value = '';
+    document.getElementById('selling-points').value = '';
+    resetImage({ stopPropagation: () => {} });
+
+    // 重置按钮
+    const btn = document.getElementById('generate-btn');
+    btn.disabled = false;
+    btn.textContent = '开始生成视频';
+
+    // 切换回表单页
+    document.getElementById('result-section').style.display = 'none';
+    document.getElementById('progress-section').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+    document.getElementById('form-section').style.display = 'block';
+
+    // 重置步骤图标
+    for (let i = 1; i <= 3; i++) {
+      const icon = document.getElementById(`icon-${i}`);
+      icon.className = 'step-icon pending';
+      icon.textContent = i;
+      document.getElementById(`desc-${i}`).className = 'step-desc';
+    }
+  }
+</script>
+
+</body>
+</html>

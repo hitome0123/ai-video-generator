@@ -1,6 +1,6 @@
 # TODO清单 - AI短视频制作系统
 
-**整体进度**: 35% (MVP 完成，等待测试)
+**整体进度**: 65% (MVP + Web 界面完成，等待 API Key 测试)
 **更新时间**: 2026-02-20
 
 ---
@@ -11,7 +11,7 @@
 |------|------|
 | **目标** | 输入产品照片 → 输出TikTok带货短视频 |
 | **总工时** | 60小时（完整版）/ 20小时（MVP） |
-| **当前阶段** | ✅ MVP 开发完成，等待 API Key 测试 |
+| **当前阶段** | ✅ MVP + Web 界面完成，等待 API Key 测试 |
 
 ---
 
@@ -23,7 +23,7 @@
 - [x] 确定技术架构和数据流
 - [x] 创建项目目录结构
 
-### 开发阶段 (2026-02-20)
+### 开发阶段 (2026-02-20) - MVP
 - [x] 图片处理模块 (src/image_processor.py)
   - [x] ChatGPT Vision 产品分析
   - [x] DALL·E 3 白底图生成
@@ -39,9 +39,24 @@
   - [x] QUICKSTART.md
   - [x] 客户沟通_API_Key申请.md
 
+### 开发阶段 (2026-02-20) - Web 界面
+- [x] FastAPI 后端服务 (src/api_server.py)
+  - [x] POST /api/generate（接收图片+产品信息，启动后台线程）
+  - [x] GET /api/status/{job_id}（实时查询进度）
+  - [x] GET /api/download/{job_id}（下载 MP4）
+  - [x] 静态文件托管
+- [x] Web 前端页面 (static/index.html)
+  - [x] 图片上传（点击/拖拽，带预览）
+  - [x] 产品信息表单（名称 + 卖点）
+  - [x] 3 步骤进度显示（实时轮询）
+  - [x] 完成后下载按钮
+- [x] 一键启动脚本 (run.py)
+- [x] 更新依赖 (requirements.txt 添加 aiofiles)
+
 ### 代码统计
-- 总代码量: ~1400 行
-- 核心模块: 4 个
+- 总代码量: ~1900 行
+- 核心模块: 5 个（含 api_server.py）
+- 前端页面: 1 个
 - 文档: 3 个
 
 ---
@@ -122,23 +137,23 @@
 
 ---
 
-## 🟡 Phase 5: API服务 (8小时)
+## ✅ Phase 5: API服务 (8小时) - 已完成
 
-- [ ] FastAPI项目搭建
-- [ ] RESTful API设计
-- [ ] 文件上传接口
-- [ ] 异步任务处理 (Celery)
-- [ ] 结果查询接口
+- [x] FastAPI项目搭建 (src/api_server.py)
+- [x] RESTful API设计
+- [x] 文件上传接口 (multipart/form-data)
+- [x] 后台线程异步处理（threading，无需 Celery）
+- [x] 结果查询接口 (/api/status/{job_id})
 
 ---
 
-## 🟢 Phase 6: Web界面 (12小时)
+## ✅ Phase 6: Web界面 (12小时) - 已完成（简化版）
 
-- [ ] 前端框架选择 (Vue/React)
-- [ ] 上传页面
-- [ ] 进度展示
-- [ ] 结果下载
-- [ ] 历史记录
+- [x] 纯 HTML/CSS/JS 前端（无需 Vue/React，更易维护）
+- [x] 上传页面（拖拽 + 点击，图片预览）
+- [x] 进度展示（3 步骤 + 实时轮询）
+- [x] 结果下载（完成后一键下载 MP4）
+- [ ] 历史记录（待后续迭代）
 
 ---
 
@@ -150,8 +165,8 @@
 | Phase 2 | 卖点分析 | 12h | P0 | ⏳ 待开发 |
 | Phase 3 | Prompt生成 | 8h | P0 | ⏳ 待开发 |
 | Phase 4 | 视频生成 | 12h | P0 | ⏳ 待开发 |
-| Phase 5 | API服务 | 8h | P1 | ⏳ 待开发 |
-| Phase 6 | Web界面 | 12h | P2 | ⏳ 待开发 |
+| Phase 5 | API服务 | 8h | P1 | ✅ 已完成 |
+| Phase 6 | Web界面 | 12h | P2 | ✅ 已完成 |
 | **总计** | | **60h** | | |
 
 ---
@@ -196,4 +211,4 @@ MVP = Phase 1 + Phase 3 + Phase 4 (部分)
 
 ---
 
-*最后更新: 2026-02-14*
+*最后更新: 2026-02-20*
