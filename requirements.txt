@@ -1,0 +1,30 @@
+# AI Video Generator - MVP Requirements
+
+# Core
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+
+# Image Processing
+Pillow==10.2.0
+opencv-python==4.9.0.80
+
+# AI APIs
+openai==1.12.0
+
+# HTTP Requests
+httpx==0.26.0
+requests==2.31.0
+
+# Async Tasks (Optional for MVP)
+# celery==5.3.6
+# redis==5.0.1
+
+# Database (Optional for MVP)
+# psycopg2-binary==2.9.9
+# sqlalchemy==2.0.25
+
+# Utilities
+pydantic==2.5.3
+pydantic-settings==2.1.0
