@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     """应用配置"""
 
     # API Keys
-    openai_api_key: str
+    openai_api_key: str = ""
     creatok_api_key: str = ""
     creatok_api_url: str = "https://api.creatok.ai/v1"
 
