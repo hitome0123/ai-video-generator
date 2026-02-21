@@ -24,6 +24,7 @@
     }
     header h1 { font-size: 20px; font-weight: 600; }
     header span { font-size: 13px; color: #aaa; display: block; margin-top: 2px; }
+    .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
     header a.back-link {
       font-size: 13px;
       color: #aaa;
@@ -32,6 +33,7 @@
       border: 1px solid #444;
       border-radius: 8px;
       flex-shrink: 0;
+      white-space: nowrap;
     }
     header a.back-link:hover { color: #fff; border-color: #888; }
 
@@ -180,7 +182,14 @@
     <h1>历史记录</h1>
     <span>最近生成的视频任务</span>
   </div>
-  <a class="back-link" href="/">返回生成</a>
+  <div class="nav-links">
+    <a class="back-link" href="/">视频生成</a>
+    <a class="back-link" href="/batch.html">批量生成</a>
+    <a class="back-link" href="/campaigns.html">广告管理</a>
+    <a class="back-link" href="/analytics.html">数据看板</a>
+    <a class="back-link" href="/optimization.html">优化队列</a>
+    <a class="back-link" href="/settings.html">设置</a>
+  </div>
 </header>
 
 <div class="container">

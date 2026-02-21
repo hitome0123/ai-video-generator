@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据看板 — AI 短视频生成器</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7; color: #1d1d1f; min-height: 100vh;
+    }
+
+    header {
+      background: #000; color: #fff;
+      padding: 18px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left h1 { font-size: 20px; font-weight: 700; }
+    .header-left p  { font-size: 12px; color: #888; margin-top: 2px; }
+    .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-link {
+      font-size: 13px; color: #aaa; text-decoration: none;
+      padding: 6px 12px; border: 1px solid #444; border-radius: 8px;
+      transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+    }
+    .nav-link:hover { color: #fff; border-color: #888; }
+    .nav-link.active { color: #fff; border-color: #fff; }
+
+    .container { max-width: 960px; margin: 32px auto; padding: 0 20px 60px; }
+
+    h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .page-sub { font-size: 14px; color: #888; margin-bottom: 24px; }
+
+    /* Overview cards */
+    .overview-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 700px) { .overview-row { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 400px) { .overview-row { grid-template-columns: 1fr; } }
+
+    .ov-card {
+      background: #fff; border-radius: 14px; padding: 18px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .ov-label {
+      font-size: 11px; color: #999; font-weight: 700;
+      letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .ov-value { font-size: 22px; font-weight: 700; }
+    .ov-value.green { color: #34c759; }
+    .ov-value.blue  { color: #007aff; }
+    .ov-sub { font-size: 12px; color: #aaa; margin-top: 3px; }
+
+    /* Chart cards */
+    .charts-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 640px) { .charts-row { grid-template-columns: 1fr; } }
+
+    .chart-card {
+      background: #fff; border-radius: 16px; padding: 22px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .chart-title {
+      font-size: 14px; font-weight: 700; margin-bottom: 16px; color: #333;
+    }
+    .chart-wrap { position: relative; height: 200px; }
+
+    /* Rankings */
+    .ranking-card {
+      background: #fff; border-radius: 16px; padding: 22px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06); margin-bottom: 16px;
+    }
+    .ranking-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: #333; }
+
+    .rank-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid #f5f5f5;
+    }
+    .rank-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .rank-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #f0f0f0; color: #888;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .rank-num.gold   { background: #FFD700; color: #333; }
+    .rank-num.silver { background: #C0C0C0; color: #333; }
+    .rank-num.bronze { background: #CD7F32; color: #fff; }
+
+    .rank-name { flex: 1; font-size: 14px; color: #333; font-weight: 500; }
+    .rank-stage {
+      font-size: 11px; padding: 2px 8px; border-radius: 10px;
+      background: #f0f0f0; color: #666;
+    }
+    .rank-roas { font-size: 16px; font-weight: 700; }
+    .roas-high { color: #34c759; }
+    .roas-mid  { color: #ff9500; }
+    .roas-low  { color: #ff3b30; }
+
+    .demo-banner {
+      background: #fff8e1; border: 1px solid #ffe082;
+      border-radius: 10px; padding: 12px 16px;
+      font-size: 13px; color: #856404; margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>AI 短视频生成器</h1>
+    <p>上传产品图片，自动生成 TikTok 带货视频</p>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="/index.html">视频生成</a>
+    <a class="nav-link" href="/batch.html">批量生成</a>
+    <a class="nav-link" href="/history.html">历史记录</a>
+    <a class="nav-link" href="/campaigns.html">广告管理</a>
+    <a class="nav-link active" href="/analytics.html">数据看板</a>
+    <a class="nav-link" href="/optimization.html">优化队列</a>
+    <a class="nav-link" href="/settings.html">设置</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="demo-banner">
+    演示模式：当前显示 Mock 数据，配置 TikTok Ads API Key 后将接入真实数据
+  </div>
+
+  <h2>数据看板</h2>
+  <p class="page-sub">广告投放效果实时追踪</p>
+
+  <!-- Overview -->
+  <div class="overview-row">
+    <div class="ov-card">
+      <div class="ov-label">总消耗</div>
+      <div class="ov-value" id="ov-spend">—</div>
+      <div class="ov-sub">累计广告投入</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">总 ROAS</div>
+      <div class="ov-value green" id="ov-roas">—</div>
+      <div class="ov-sub">广告回报率</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">总曝光</div>
+      <div class="ov-value blue" id="ov-imp">—</div>
+      <div class="ov-sub">累计曝光次数</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">转化率</div>
+      <div class="ov-value" id="ov-cvr">—</div>
+      <div class="ov-sub">点击→购买</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">ROAS 7 日趋势</div>
+      <div class="chart-wrap"><canvas id="chart-roas"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">日消耗趋势（元）</div>
+      <div class="chart-wrap"><canvas id="chart-spend"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Campaign rankings -->
+  <div class="ranking-card">
+    <div class="ranking-title">广告表现排行（按 ROAS 降序）</div>
+    <div id="rankings-list"><div style="color:#aaa;text-align:center;padding:20px">加载中…</div></div>
+  </div>
+</div>
+
+<script>
+  async function loadOverview() {
+    const res = await fetch('/api/analytics/overview');
+    const d = await res.json();
+    document.getElementById('ov-spend').textContent = '¥' + d.total_spend.toLocaleString();
+    document.getElementById('ov-roas').textContent  = d.total_roas.toFixed(2) + 'x';
+    document.getElementById('ov-imp').textContent   = formatNum(d.total_impressions);
+    document.getElementById('ov-cvr').textContent   = d.conversion_rate.toFixed(2) + '%';
+  }
+
+  async function loadTrends() {
+    const res = await fetch('/api/analytics/trends');
+    const d = await res.json();
+
+    const commonOpts = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#aaa' } },
+        y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#aaa' } },
+      },
+    };
+
+    new Chart(document.getElementById('chart-roas'), {
+      type: 'line',
+      data: {
+        labels: d.dates,
+        datasets: [{
+          data: d.roas,
+          borderColor: '#34c759',
+          backgroundColor: 'rgba(52,199,89,0.08)',
+          borderWidth: 2.5,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: '#34c759',
+        }],
+      },
+      options: commonOpts,
+    });
+
+    new Chart(document.getElementById('chart-spend'), {
+      type: 'bar',
+      data: {
+        labels: d.dates,
+        datasets: [{
+          data: d.spend,
+          backgroundColor: 'rgba(0,122,255,0.7)',
+          borderRadius: 6,
+        }],
+      },
+      options: commonOpts,
+    });
+  }
+
+  async function loadRankings() {
+    const res = await fetch('/api/analytics/campaigns');
+    const d = await res.json();
+    const list = document.getElementById('rankings-list');
+    const medals = ['gold', 'silver', 'bronze'];
+
+    list.innerHTML = d.rankings.map((r, i) => {
+      const roasClass = r.roas >= 2.5 ? 'roas-high' : r.roas >= 1.5 ? 'roas-mid' : 'roas-low';
+      const medalClass = medals[i] || '';
+      return `
+        <div class="rank-row">
+          <div class="rank-num ${medalClass}">${i + 1}</div>
+          <div class="rank-name">${escHtml(r.name)}</div>
+          <span class="rank-stage">${escHtml(r.stage)}</span>
+          <div class="rank-roas ${roasClass}">${r.roas.toFixed(2)}x</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function formatNum(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+    return String(n);
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, m =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])
+    );
+  }
+
+  Promise.all([loadOverview(), loadTrends(), loadRankings()]);
+</script>
+</body>
+</html>

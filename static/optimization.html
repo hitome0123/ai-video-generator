@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>优化队列 — AI 短视频生成器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7; color: #1d1d1f; min-height: 100vh;
+    }
+
+    header {
+      background: #000; color: #fff;
+      padding: 18px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left h1 { font-size: 20px; font-weight: 700; }
+    .header-left p  { font-size: 12px; color: #888; margin-top: 2px; }
+    .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-link {
+      font-size: 13px; color: #aaa; text-decoration: none;
+      padding: 6px 12px; border: 1px solid #444; border-radius: 8px;
+      transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+    }
+    .nav-link:hover { color: #fff; border-color: #888; }
+    .nav-link.active { color: #fff; border-color: #fff; }
+
+    .container { max-width: 800px; margin: 32px auto; padding: 0 20px 60px; }
+
+    h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .page-sub { font-size: 14px; color: #888; margin-bottom: 24px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 0; margin-bottom: 20px;
+      border-bottom: 2px solid #e8e8e8;
+    }
+    .tab-btn {
+      padding: 10px 20px; background: none; border: none;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      color: #aaa; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn.active { color: #000; border-bottom-color: #000; }
+    .tab-badge {
+      display: inline-block; background: #ff3b30; color: #fff;
+      border-radius: 10px; font-size: 11px; font-weight: 700;
+      padding: 1px 6px; margin-left: 5px;
+    }
+
+    /* Opt card */
+    .opt-card {
+      background: #fff; border-radius: 16px; padding: 22px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06); margin-bottom: 14px;
+    }
+
+    .opt-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 14px; gap: 12px;
+    }
+    .opt-source { font-size: 15px; font-weight: 700; color: #1d1d1f; }
+    .opt-roas-badge {
+      background: #e8f9ef; color: #1a7c3e;
+      border-radius: 8px; padding: 4px 10px;
+      font-size: 13px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+    }
+
+    .opt-meta {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .opt-meta-item {
+      font-size: 12px; color: #888;
+      background: #f5f5f7; border-radius: 6px;
+      padding: 4px 10px;
+    }
+
+    .opt-strategy {
+      font-size: 14px; color: #444; line-height: 1.6;
+      background: #fafafa; border-radius: 10px;
+      padding: 12px 14px; margin-bottom: 14px;
+    }
+
+    /* Video thumbnails placeholder */
+    .thumb-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .thumb {
+      width: 60px; height: 96px; border-radius: 8px;
+      background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+
+    /* Action buttons */
+    .opt-actions { display: flex; gap: 8px; }
+    .btn-approve {
+      flex: 1; padding: 11px; background: #34c759; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-approve:hover { opacity: 0.85; }
+    .btn-reject {
+      flex: 1; padding: 11px; background: none;
+      border: 1.5px solid #ff3b30; color: #ff3b30;
+      border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-reject:hover { background: #fff2f2; }
+
+    /* Completed card */
+    .done-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06); margin-bottom: 14px;
+      opacity: 0.85;
+    }
+    .done-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .done-badge {
+      font-size: 11px; background: #e8f9ef; color: #1a7c3e;
+      border-radius: 6px; padding: 3px 8px; font-weight: 600;
+    }
+    .done-source { font-size: 14px; font-weight: 600; color: #333; }
+    .roas-compare {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: #888;
+    }
+    .roas-arrow { color: #34c759; font-weight: 700; }
+    .done-time { font-size: 12px; color: #bbb; margin-top: 6px; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: #aaa; font-size: 14px;
+    }
+
+    .demo-banner {
+      background: #fff8e1; border: 1px solid #ffe082;
+      border-radius: 10px; padding: 12px 16px;
+      font-size: 13px; color: #856404; margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>AI 短视频生成器</h1>
+    <p>上传产品图片，自动生成 TikTok 带货视频</p>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="/index.html">视频生成</a>
+    <a class="nav-link" href="/batch.html">批量生成</a>
+    <a class="nav-link" href="/history.html">历史记录</a>
+    <a class="nav-link" href="/campaigns.html">广告管理</a>
+    <a class="nav-link" href="/analytics.html">数据看板</a>
+    <a class="nav-link active" href="/optimization.html">优化队列</a>
+    <a class="nav-link" href="/settings.html">设置</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="demo-banner">
+    演示模式：当前显示 Mock 数据，优化引擎将在广告数据积累后自动触发
+  </div>
+
+  <h2>优化队列</h2>
+  <p class="page-sub">AI 根据广告数据生成优化建议，人工确认后自动投放新素材</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-pending" onclick="switchTab('pending')">
+      待确认 <span class="tab-badge" id="pending-badge">0</span>
+    </button>
+    <button class="tab-btn" id="tab-completed" onclick="switchTab('completed')">
+      已完成
+    </button>
+  </div>
+
+  <div id="panel-pending"></div>
+  <div id="panel-completed" style="display:none"></div>
+</div>
+
+<script>
+  let queueData = null;
+
+  async function loadQueue() {
+    try {
+      const res = await fetch('/api/optimization/queue');
+      queueData = await res.json();
+      renderPending(queueData.pending);
+      renderCompleted(queueData.completed);
+      document.getElementById('pending-badge').textContent = queueData.pending.length;
+    } catch (e) {
+      document.getElementById('panel-pending').innerHTML =
+        `<div class="empty-state" style="color:#ff3b30">加载失败：${e.message}</div>`;
+    }
+  }
+
+  function renderPending(items) {
+    const panel = document.getElementById('panel-pending');
+    if (!items.length) {
+      panel.innerHTML = '<div class="empty-state">暂无待确认的优化任务<br><span style="font-size:12px;margin-top:6px;display:block">当广告数据达到阈值后，AI 将自动生成优化建议</span></div>';
+      return;
+    }
+
+    panel.innerHTML = items.map(item => `
+      <div class="opt-card" id="card-${item.id}">
+        <div class="opt-header">
+          <div class="opt-source">${escHtml(item.source_campaign)}</div>
+          <div class="opt-roas-badge">ROAS ${item.source_roas.toFixed(2)}x</div>
+        </div>
+        <div class="opt-meta">
+          <span class="opt-meta-item">生成了 ${item.video_count} 条新视频</span>
+          <span class="opt-meta-item">Hook：${escHtml(item.hook_type)}</span>
+          <span class="opt-meta-item">${escHtml(item.created_at)}</span>
+        </div>
+        <div class="thumb-row">
+          ${Array(item.video_count).fill(0).map(() => `<div class="thumb">🎬</div>`).join('')}
+          <div style="display:flex;align-items:center;padding-left:6px;font-size:12px;color:#bbb">
+            新素材预览
+          </div>
+        </div>
+        <div class="opt-strategy">
+          <strong style="font-size:12px;color:#999;display:block;margin-bottom:4px">优化摘要</strong>
+          ${escHtml(item.strategy)}
+        </div>
+        <div class="opt-actions">
+          <button class="btn-approve" onclick="approve('${item.id}')">✅ 确认投放</button>
+          <button class="btn-reject"  onclick="reject('${item.id}')">❌ 拒绝</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderCompleted(items) {
+    const panel = document.getElementById('panel-completed');
+    if (!items.length) {
+      panel.innerHTML = '<div class="empty-state">暂无已完成的优化记录</div>';
+      return;
+    }
+
+    panel.innerHTML = items.map(item => `
+      <div class="done-card">
+        <div class="done-header">
+          <span class="done-badge">${item.status === 'approved' ? '已投放' : '已拒绝'}</span>
+          <span class="done-source">${escHtml(item.source_campaign)}</span>
+        </div>
+        <div class="roas-compare">
+          原 ROAS ${item.source_roas.toFixed(2)}x
+          <span class="roas-arrow">→</span>
+          投放后 ${item.new_roas.toFixed(2)}x
+          <span style="color:#34c759;font-weight:700">
+            (+${((item.new_roas - item.source_roas) / item.source_roas * 100).toFixed(0)}%)
+          </span>
+        </div>
+        <div class="done-time">确认于 ${escHtml(item.approved_at)}</div>
+      </div>
+    `).join('');
+  }
+
+  async function approve(id) {
+    const card = document.getElementById(`card-${id}`);
+    const btns = card.querySelectorAll('button');
+    btns.forEach(b => b.disabled = true);
+
+    try {
+      await fetch(`/api/optimization/${id}/approve`, { method: 'POST' });
+      card.style.opacity = '0.5';
+      card.style.transform = 'scale(0.98)';
+      card.style.transition = 'all 0.3s';
+      setTimeout(() => {
+        card.remove();
+        updateBadge();
+      }, 400);
+    } catch (e) {
+      btns.forEach(b => b.disabled = false);
+      alert('操作失败：' + e.message);
+    }
+  }
+
+  async function reject(id) {
+    const card = document.getElementById(`card-${id}`);
+    const btns = card.querySelectorAll('button');
+    btns.forEach(b => b.disabled = true);
+
+    try {
+      await fetch(`/api/optimization/${id}/reject`, { method: 'POST' });
+      card.style.opacity = '0';
+      card.style.transition = 'opacity 0.3s';
+      setTimeout(() => {
+        card.remove();
+        updateBadge();
+      }, 300);
+    } catch (e) {
+      btns.forEach(b => b.disabled = false);
+      alert('操作失败：' + e.message);
+    }
+  }
+
+  function updateBadge() {
+    const remaining = document.querySelectorAll('#panel-pending .opt-card').length;
+    document.getElementById('pending-badge').textContent = remaining;
+    if (remaining === 0) {
+      document.getElementById('panel-pending').innerHTML =
+        '<div class="empty-state">所有优化任务已处理完毕</div>';
+    }
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tab-pending').classList.toggle('active', tab === 'pending');
+    document.getElementById('tab-completed').classList.toggle('active', tab === 'completed');
+    document.getElementById('panel-pending').style.display = tab === 'pending' ? 'block' : 'none';
+    document.getElementById('panel-completed').style.display = tab === 'completed' ? 'block' : 'none';
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, m =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])
+    );
+  }
+
+  loadQueue();
+</script>
+</body>
+</html>

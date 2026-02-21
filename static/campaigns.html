@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>广告管理 — AI 短视频生成器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7; color: #1d1d1f; min-height: 100vh;
+    }
+
+    header {
+      background: #000; color: #fff;
+      padding: 18px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left h1 { font-size: 20px; font-weight: 700; }
+    .header-left p  { font-size: 12px; color: #888; margin-top: 2px; }
+    .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-link {
+      font-size: 13px; color: #aaa; text-decoration: none;
+      padding: 6px 12px; border: 1px solid #444; border-radius: 8px;
+      transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+    }
+    .nav-link:hover { color: #fff; border-color: #888; }
+    .nav-link.active { color: #fff; border-color: #fff; }
+
+    .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-header h2 { font-size: 22px; font-weight: 700; }
+    .btn-new {
+      background: #000; color: #fff; border: none;
+      border-radius: 10px; padding: 10px 18px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-new:hover { opacity: 0.8; }
+
+    /* Summary cards */
+    .summary-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) { .summary-row { grid-template-columns: 1fr; } }
+
+    .summary-card {
+      background: #fff; border-radius: 14px; padding: 20px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .summary-label {
+      font-size: 12px; color: #999; font-weight: 600;
+      letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .summary-value {
+      font-size: 26px; font-weight: 700; color: #1d1d1f;
+    }
+    .summary-value.green { color: #34c759; }
+
+    /* Table */
+    .table-card {
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06); overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid #f0f0f0; }
+    th {
+      text-align: left; padding: 14px 16px;
+      font-size: 12px; font-weight: 700; color: #999;
+      letter-spacing: 0.4px; text-transform: uppercase;
+    }
+    td { padding: 16px; font-size: 14px; border-bottom: 1px solid #f8f8f8; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .stage-badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 20px; font-size: 12px; font-weight: 600;
+      white-space: nowrap;
+    }
+    .stage-initial { background: #e8f4fd; color: #1e7ec9; }
+    .stage-growth  { background: #fff3e0; color: #e65100; }
+    .stage-peak    { background: #fde8e8; color: #c62828; }
+
+    .status-dot {
+      display: inline-block; width: 8px; height: 8px;
+      border-radius: 50%; margin-right: 5px;
+    }
+    .status-active { background: #34c759; }
+    .status-paused { background: #ff9500; }
+
+    .roas-value { font-weight: 700; }
+    .roas-high { color: #34c759; }
+    .roas-mid  { color: #ff9500; }
+    .roas-low  { color: #ff3b30; }
+
+    .btn-action {
+      background: none; border: 1px solid #ddd;
+      border-radius: 7px; padding: 5px 10px;
+      font-size: 12px; cursor: pointer; color: #555;
+      transition: border-color 0.2s;
+    }
+    .btn-action:hover { border-color: #999; }
+    .btn-action + .btn-action { margin-left: 4px; }
+
+    /* Modal */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; display: none;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 18px; padding: 28px;
+      width: 100%; max-width: 440px; margin: 20px;
+    }
+    .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+    .field-label { font-size: 13px; color: #555; font-weight: 500; margin-bottom: 6px; display: block; }
+    .modal input, .modal select {
+      width: 100%; padding: 11px 13px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 14px; font-family: inherit; outline: none;
+      transition: border-color 0.2s; margin-bottom: 14px;
+    }
+    .modal input:focus, .modal select:focus { border-color: #000; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 4px; }
+    .btn-cancel {
+      flex: 1; padding: 12px; background: none;
+      border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 14px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .btn-cancel:hover { border-color: #aaa; }
+    .btn-confirm {
+      flex: 1; padding: 12px; background: #000; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-confirm:hover { opacity: 0.8; }
+
+    .demo-banner {
+      background: #fff8e1; border: 1px solid #ffe082;
+      border-radius: 10px; padding: 12px 16px;
+      font-size: 13px; color: #856404; margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>AI 短视频生成器</h1>
+    <p>上传产品图片，自动生成 TikTok 带货视频</p>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="/index.html">视频生成</a>
+    <a class="nav-link" href="/batch.html">批量生成</a>
+    <a class="nav-link" href="/history.html">历史记录</a>
+    <a class="nav-link active" href="/campaigns.html">广告管理</a>
+    <a class="nav-link" href="/analytics.html">数据看板</a>
+    <a class="nav-link" href="/optimization.html">优化队列</a>
+    <a class="nav-link" href="/settings.html">设置</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="demo-banner">
+    演示模式：当前显示 Mock 数据，配置 TikTok Ads API Key 后将接入真实数据
+  </div>
+
+  <div class="page-header">
+    <h2>广告管理</h2>
+    <button class="btn-new" onclick="openModal()">+ 新建广告</button>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="summary-row">
+    <div class="summary-card">
+      <div class="summary-label">活跃广告</div>
+      <div class="summary-value" id="stat-active">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">今日总消耗</div>
+      <div class="summary-value" id="stat-spend">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">平均 ROAS</div>
+      <div class="summary-value green" id="stat-roas">—</div>
+    </div>
+  </div>
+
+  <!-- 广告表格 -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>广告名称</th>
+          <th>阶段</th>
+          <th>状态</th>
+          <th>日消耗</th>
+          <th>ROAS</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="campaigns-tbody">
+        <tr><td colspan="6" style="text-align:center;color:#aaa;padding:40px">加载中…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 新建广告弹窗 -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>新建广告</h3>
+    <label class="field-label">广告名称</label>
+    <input type="text" id="new-name" placeholder="例如：智能手表 — 冲量版">
+    <label class="field-label">日预算（元）</label>
+    <input type="number" id="new-budget" value="100" min="50" step="50">
+    <label class="field-label">初始阶段</label>
+    <select id="new-stage">
+      <option value="initial">打品初期</option>
+      <option value="growth">热度提升期</option>
+      <option value="peak">爆品期</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" onclick="createCampaign()">创建</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function loadCampaigns() {
+    try {
+      const res = await fetch('/api/campaigns');
+      const data = await res.json();
+
+      document.getElementById('stat-active').textContent = data.summary.active_count;
+      document.getElementById('stat-spend').textContent = '¥' + data.summary.total_spend_today.toFixed(0);
+      document.getElementById('stat-roas').textContent = data.summary.avg_roas.toFixed(2) + 'x';
+
+      renderTable(data.campaigns);
+    } catch (e) {
+      document.querySelector('#campaigns-tbody').innerHTML =
+        `<tr><td colspan="6" style="text-align:center;color:#ff3b30;padding:40px">加载失败：${e.message}</td></tr>`;
+    }
+  }
+
+  function renderTable(campaigns) {
+    const tbody = document.getElementById('campaigns-tbody');
+    if (!campaigns.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:40px">暂无广告，点击「新建广告」开始</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = campaigns.map(c => {
+      const stageClass = { initial: 'stage-initial', growth: 'stage-growth', peak: 'stage-peak' }[c.stage] || 'stage-initial';
+      const statusClass = c.status === 'active' ? 'status-active' : 'status-paused';
+      const statusLabel = c.status === 'active' ? '投放中' : '已暂停';
+      const roasClass = c.roas >= 2.5 ? 'roas-high' : c.roas >= 1.5 ? 'roas-mid' : 'roas-low';
+
+      return `
+        <tr>
+          <td style="font-weight:500;max-width:220px">${escHtml(c.name)}</td>
+          <td><span class="stage-badge ${stageClass}">${escHtml(c.stage_label)}</span></td>
+          <td><span class="status-dot ${statusClass}"></span>${statusLabel}</td>
+          <td>¥${c.spend_today.toFixed(0)}</td>
+          <td><span class="roas-value ${roasClass}">${c.roas.toFixed(2)}x</span></td>
+          <td>
+            <button class="btn-action" onclick="alert('演示模式，暂不支持实际操作')">详情</button>
+            <button class="btn-action" onclick="alert('演示模式，暂不支持实际操作')">
+              ${c.status === 'active' ? '暂停' : '恢复'}
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function openModal() { document.getElementById('modal-bg').classList.add('show'); }
+  function closeModal() { document.getElementById('modal-bg').classList.remove('show'); }
+
+  document.getElementById('modal-bg').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  async function createCampaign() {
+    const name = document.getElementById('new-name').value.trim();
+    const budget = parseFloat(document.getElementById('new-budget').value);
+    const stage = document.getElementById('new-stage').value;
+
+    if (!name) { alert('请填写广告名称'); return; }
+
+    const btn = document.querySelector('.btn-confirm');
+    btn.disabled = true; btn.textContent = '创建中…';
+
+    try {
+      const res = await fetch('/api/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, daily_budget: budget, stage }),
+      });
+      const data = await res.json();
+      closeModal();
+      alert(`已创建广告：${data.name}\nID: ${data.campaign_id}\n\n${data.message}`);
+    } catch (e) {
+      alert('创建失败：' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = '创建';
+    }
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, m =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])
+    );
+  }
+
+  loadCampaigns();
+</script>
+</body>
+</html>

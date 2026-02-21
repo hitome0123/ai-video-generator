@@ -38,3 +38,8 @@ logs/
 *.mp4
 *.mov
 uploads/
+
+# Runtime data
+data/
+output/
+temp/

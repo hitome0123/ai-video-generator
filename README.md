@@ -14,8 +14,10 @@ AI 驱动的一站式视频生成系统，面向跨境电商卖家。上传产�
 - **AI 卖点建议** — 输入产品名，GPT-4o 自动补充核心卖点
 - **竞品文案分析** — 粘贴竞品内容，AI 提取卖点、钩子句式和策略摘要
 - **后处理** — FFmpeg 自动烧录字幕、混入背景音乐（BGM）
+- **批量处理** — CSV 批量导入产品，队列化并行生成多个视频
 - **历史记录** — SQLite 持久化任务，重启后可重新下载视频
-- **Web 界面** — 浏览器全流程操作，无需命令行
+- **设置管理** — Web 界面统一管理 API Key 及系统参数
+- **Web 界面** — 浏览器全流程操作，无需命令行（7 个功能页面）
 
 ---
 
@@ -133,10 +135,17 @@ ai-video-generator/
 │   ├── post_processor.py       # 后处理（FFmpeg 字幕 + BGM）
 │   ├── database.py             # SQLite 任务持久化
 │   ├── competitor_analyzer.py  # AI 卖点建议 + 竞品分析
+│   ├── batch_processor.py      # 批量处理队列
+│   ├── settings_manager.py     # 设置持久化管理
 │   └── api_server.py           # FastAPI 后端
 ├── static/
 │   ├── index.html              # Web 前端（主页）
 │   ├── history.html            # 历史记录页面
+│   ├── batch.html              # 批量处理页面
+│   ├── settings.html           # 设置页面
+│   ├── campaigns.html          # 广告系列管理页面
+│   ├── analytics.html          # 数据分析页面
+│   ├── optimization.html       # 优化分析页面
 │   └── bgm/                    # 背景音乐目录（放置 mp3/wav）
 ├── data/                       # SQLite 数据库（自动创建）
 ├── docs/
@@ -158,6 +167,10 @@ ai-video-generator/
 | DELETE | `/api/history/{job_id}` | 删除任务记录 |
 | POST | `/api/suggest-selling-points` | AI 卖点建议 |
 | POST | `/api/analyze-competitor` | 竞品文案分析 |
+| GET | `/api/batch` | 获取批量任务列表 |
+| POST | `/api/batch` | 提交批量生成任务 |
+| GET | `/api/settings` | 获取系统设置 |
+| POST | `/api/settings` | 保存系统设置 |
 
 ---
 
@@ -195,7 +208,8 @@ ai-video-generator/
 - [x] 历史记录（SQLite 持久化 + 历史页面）
 - [x] AI 卖点建议 + 竞品文案分析
 - [x] 命令行工具
-- [ ] 批量处理（Excel 导入 + 队列生成）
+- [x] 批量处理（CSV 导入 + 队列生成）
+- [x] 设置管理（Web 界面配置 API Key）
 
 ---
 

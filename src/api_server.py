@@ -21,9 +21,13 @@ from .post_processor import PostProcessor
 from .competitor_analyzer import suggest_selling_points, analyze_competitor_text
 from . import database as db
 from . import batch_processor as bp
+from . import settings_manager as sm
 
 
 app = FastAPI(title="AI Video Generator")
+
+# 启动时加载 DB 配置到 config.settings（向后兼容）
+sm.load_into_config()
 
 # 内存任务状态（供实时轮询用，同时写入 SQLite 持久化）
 jobs: dict = {}
@@ -431,6 +435,229 @@ async def api_analyze_competitor(
         "hook_ideas": result["hook_ideas"],
         "summary": result["summary"],
     }
+
+
+# ────────────────────────────────────────────────────────────
+# 设置 API
+# ────────────────────────────────────────────────────────────
+
+@app.get("/api/settings")
+async def get_settings():
+    """返回所有配置项（secret 字段掩码显示）"""
+    return sm.get_all(mask_secrets=True)
+
+
+@app.get("/api/settings/groups")
+async def get_settings_groups():
+    """返回按 group 分组的配置定义列表（供前端渲染表单）"""
+    return sm.get_groups()
+
+
+@app.post("/api/settings")
+async def update_setting(
+    key: str = Body(..., embed=True),
+    value: str = Body(..., embed=True),
+):
+    """更新单个配置项"""
+    if key not in sm.SETTING_DEFS:
+        raise HTTPException(status_code=400, detail=f"未知配置项: {key}")
+    sm.set(key, value)
+    return {"status": "ok", "key": key}
+
+
+# ────────────────────────────────────────────────────────────
+# 广告 Campaign API（Stub，返回 mock 数据）
+# ────────────────────────────────────────────────────────────
+
+_MOCK_CAMPAIGNS = [
+    {
+        "id": "camp_001",
+        "name": "智能手表 V8 Pro — 爆品冲量",
+        "stage": "peak",
+        "stage_label": "爆品期",
+        "status": "active",
+        "daily_budget": 500,
+        "spend_today": 423.5,
+        "roas": 3.82,
+        "impressions": 128400,
+        "created_at": "2026-02-18",
+    },
+    {
+        "id": "camp_002",
+        "name": "无线耳机 Pro X — 热度提升",
+        "stage": "growth",
+        "stage_label": "热度提升期",
+        "status": "active",
+        "daily_budget": 200,
+        "spend_today": 187.2,
+        "roas": 2.41,
+        "impressions": 62300,
+        "created_at": "2026-02-19",
+    },
+    {
+        "id": "camp_003",
+        "name": "保温杯 — 打品测试",
+        "stage": "initial",
+        "stage_label": "打品初期",
+        "status": "active",
+        "daily_budget": 100,
+        "spend_today": 78.9,
+        "roas": 1.23,
+        "impressions": 21500,
+        "created_at": "2026-02-20",
+    },
+    {
+        "id": "camp_004",
+        "name": "蓝牙音箱 Mini — 已暂停",
+        "stage": "initial",
+        "stage_label": "打品初期",
+        "status": "paused",
+        "daily_budget": 100,
+        "spend_today": 0,
+        "roas": 0.48,
+        "impressions": 9800,
+        "created_at": "2026-02-17",
+    },
+]
+
+
+@app.get("/api/campaigns")
+async def list_campaigns():
+    """获取广告列表（mock 数据）"""
+    summary = {
+        "active_count": sum(1 for c in _MOCK_CAMPAIGNS if c["status"] == "active"),
+        "total_spend_today": sum(c["spend_today"] for c in _MOCK_CAMPAIGNS),
+        "avg_roas": round(
+            sum(c["roas"] for c in _MOCK_CAMPAIGNS if c["status"] == "active") /
+            max(sum(1 for c in _MOCK_CAMPAIGNS if c["status"] == "active"), 1),
+            2
+        ),
+    }
+    return {"campaigns": _MOCK_CAMPAIGNS, "summary": summary}
+
+
+@app.post("/api/campaigns")
+async def create_campaign(
+    name: str = Body(..., embed=True),
+    daily_budget: float = Body(100.0, embed=True),
+    stage: str = Body("initial", embed=True),
+):
+    """创建广告（stub，返回 fake campaign_id）"""
+    import uuid as _uuid
+    return {
+        "status": "created",
+        "campaign_id": f"camp_{_uuid.uuid4().hex[:6]}",
+        "name": name,
+        "message": "广告已创建（演示模式，未实际投放）",
+    }
+
+
+# ────────────────────────────────────────────────────────────
+# 数据分析 API（Stub，返回 mock 数据）
+# ────────────────────────────────────────────────────────────
+
+@app.get("/api/analytics/overview")
+async def analytics_overview():
+    """数据看板概览（mock 数据）"""
+    return {
+        "total_spend": 12840.5,
+        "total_roas": 2.87,
+        "total_impressions": 3820000,
+        "conversion_rate": 2.34,
+        "revenue": 36853.0,
+        "orders": 1842,
+    }
+
+
+@app.get("/api/analytics/trends")
+async def analytics_trends():
+    """ROAS 和消耗趋势（mock 7日数据）"""
+    dates = ["02-15", "02-16", "02-17", "02-18", "02-19", "02-20", "02-21"]
+    roas  = [1.82, 2.10, 2.45, 2.78, 3.12, 3.45, 3.82]
+    spend = [820, 950, 1100, 1320, 1580, 1820, 2250]
+    return {
+        "dates": dates,
+        "roas": roas,
+        "spend": spend,
+    }
+
+
+@app.get("/api/analytics/campaigns")
+async def analytics_campaigns():
+    """广告表现排行（mock 数据）"""
+    return {
+        "rankings": sorted(
+            [
+                {"name": c["name"], "roas": c["roas"], "spend": c["spend_today"],
+                 "impressions": c["impressions"], "stage": c["stage_label"]}
+                for c in _MOCK_CAMPAIGNS
+            ],
+            key=lambda x: x["roas"],
+            reverse=True,
+        )
+    }
+
+
+# ────────────────────────────────────────────────────────────
+# 优化队列 API（Stub，返回 mock 数据）
+# ────────────────────────────────────────────────────────────
+
+_MOCK_QUEUE = [
+    {
+        "id": "opt_001",
+        "status": "pending",
+        "source_campaign": "智能手表 V8 Pro — 爆品冲量",
+        "source_roas": 3.82,
+        "video_count": 3,
+        "hook_type": "痛点开头",
+        "strategy": "强化「续航 7 天」卖点，增加用户证言镜头",
+        "created_at": "2026-02-21 09:00",
+    },
+    {
+        "id": "opt_002",
+        "status": "pending",
+        "source_campaign": "无线耳机 Pro X — 热度提升",
+        "source_roas": 2.41,
+        "video_count": 3,
+        "hook_type": "对比开头",
+        "strategy": "新增价格锚定策略，对比竞品突出性价比",
+        "created_at": "2026-02-21 09:05",
+    },
+]
+
+_MOCK_COMPLETED = [
+    {
+        "id": "opt_000",
+        "status": "approved",
+        "source_campaign": "保温杯 — 初代测试",
+        "source_roas": 1.95,
+        "new_roas": 3.12,
+        "video_count": 3,
+        "hook_type": "场景开头",
+        "approved_at": "2026-02-19 14:30",
+    },
+]
+
+
+@app.get("/api/optimization/queue")
+async def get_optimization_queue():
+    """获取优化队列（mock 数据）"""
+    return {
+        "pending": _MOCK_QUEUE,
+        "completed": _MOCK_COMPLETED,
+    }
+
+
+@app.post("/api/optimization/{opt_id}/approve")
+async def approve_optimization(opt_id: str):
+    """确认投放优化任务（stub）"""
+    return {"status": "approved", "opt_id": opt_id, "message": "已确认投放（演示模式）"}
+
+
+@app.post("/api/optimization/{opt_id}/reject")
+async def reject_optimization(opt_id: str):
+    """拒绝优化任务（stub）"""
+    return {"status": "rejected", "opt_id": opt_id, "message": "已拒绝（演示模式）"}
 
 
 # ── 挂载静态文件（必须放在所有 API 路由之后）────────────────────

@@ -32,6 +32,13 @@ def _init_db(conn: sqlite3.Connection):
             updated_at  REAL NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            key         TEXT PRIMARY KEY,
+            value       TEXT NOT NULL DEFAULT '',
+            updated_at  REAL NOT NULL
+        )
+    """)
     conn.commit()
 
 
@@ -116,6 +123,37 @@ def list_jobs(limit: int = 50) -> List[Dict]:
         ).fetchall()
 
     return [_row_to_dict(r) for r in rows]
+
+
+def get_setting(key: str) -> Optional[str]:
+    """查询单个配置项，不存在返回 None"""
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT value FROM settings WHERE key = ?", (key,)
+        ).fetchone()
+    return row["value"] if row else None
+
+
+def set_setting(key: str, value: str) -> None:
+    """写入或更新配置项"""
+    now = time.time()
+    with get_conn() as conn:
+        conn.execute(
+            """
+            INSERT INTO settings (key, value, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+            """,
+            (key, value, now),
+        )
+        conn.commit()
+
+
+def list_settings() -> Dict[str, str]:
+    """读取全部配置，返回 {key: value} 字典"""
+    with get_conn() as conn:
+        rows = conn.execute("SELECT key, value FROM settings").fetchall()
+    return {r["key"]: r["value"] for r in rows}
 
 
 def delete_job(job_id: str) -> bool:

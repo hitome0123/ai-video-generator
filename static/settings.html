@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统设置 — AI 短视频生成器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7; color: #1d1d1f; min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: #000; color: #fff;
+      padding: 18px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left h1 { font-size: 20px; font-weight: 700; }
+    .header-left p  { font-size: 12px; color: #888; margin-top: 2px; }
+    .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-link {
+      font-size: 13px; color: #aaa; text-decoration: none;
+      padding: 6px 12px; border: 1px solid #444; border-radius: 8px;
+      transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+    }
+    .nav-link:hover { color: #fff; border-color: #888; }
+    .nav-link.active { color: #fff; border-color: #fff; }
+
+    .container { max-width: 720px; margin: 32px auto; padding: 0 20px 60px; }
+
+    h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .page-sub { font-size: 14px; color: #888; margin-bottom: 28px; }
+
+    /* Group card */
+    .group-card {
+      background: #fff; border-radius: 18px;
+      padding: 24px; margin-bottom: 16px;
+      box-shadow: 0 1px 10px rgba(0,0,0,0.06);
+    }
+    .group-title {
+      font-size: 12px; font-weight: 700; color: #999;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      margin-bottom: 18px;
+      padding-bottom: 10px; border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* Setting row */
+    .setting-row {
+      padding: 14px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .setting-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .row-label {
+      font-size: 14px; font-weight: 500; color: #333;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .secret-badge {
+      font-size: 10px; background: #f0f0f0; color: #888;
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .has-value-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #34c759; display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .input-row {
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .input-row input[type=text],
+    .input-row input[type=password] {
+      flex: 1; padding: 10px 12px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: #1d1d1f;
+      outline: none; transition: border-color 0.2s;
+      background: #fff;
+    }
+    .input-row input:focus { border-color: #000; }
+    .input-row textarea {
+      flex: 1; padding: 10px 12px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: #1d1d1f;
+      outline: none; transition: border-color 0.2s;
+      resize: vertical; min-height: 72px; line-height: 1.5;
+    }
+    .input-row textarea:focus { border-color: #000; }
+    .input-row select {
+      flex: 1; padding: 10px 12px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: #1d1d1f;
+      outline: none; background: #fff; cursor: pointer;
+    }
+
+    .btn-eye {
+      background: none; border: 1.5px solid #e0e0e0;
+      border-radius: 10px; padding: 10px 12px;
+      cursor: pointer; font-size: 14px; color: #888;
+      transition: border-color 0.2s, color 0.2s; white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-eye:hover { border-color: #aaa; color: #333; }
+
+    .btn-save {
+      background: #000; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 10px 16px; font-size: 14px;
+      cursor: pointer; transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-save:hover { opacity: 0.8; }
+    .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+      padding: 12px 22px; border-radius: 12px;
+      font-size: 14px; font-weight: 500; color: #fff;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+      z-index: 9999; white-space: nowrap;
+    }
+    .toast.success { background: #34c759; }
+    .toast.error   { background: #ff3b30; }
+    .toast.show    { opacity: 1; }
+
+    .loading-state {
+      text-align: center; padding: 60px 20px;
+      color: #aaa; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>AI 短视频生成器</h1>
+    <p>上传产品图片，自动生成 TikTok 带货视频</p>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="/index.html">视频生成</a>
+    <a class="nav-link" href="/batch.html">批量生成</a>
+    <a class="nav-link" href="/history.html">历史记录</a>
+    <a class="nav-link" href="/campaigns.html">广告管理</a>
+    <a class="nav-link" href="/analytics.html">数据看板</a>
+    <a class="nav-link" href="/optimization.html">优化队列</a>
+    <a class="nav-link active" href="/settings.html">设置</a>
+  </div>
+</header>
+
+<div class="container">
+  <h2>系统设置</h2>
+  <p class="page-sub">配置 API Key 及运营参数，所有设置加密存储在本地数据库</p>
+
+  <div id="settings-container">
+    <div class="loading-state">加载中…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let groupsData = [];
+
+  async function loadSettings() {
+    try {
+      const res = await fetch('/api/settings/groups');
+      if (!res.ok) throw new Error('加载失败');
+      groupsData = await res.json();
+      renderGroups(groupsData);
+    } catch (e) {
+      document.getElementById('settings-container').innerHTML =
+        `<div class="loading-state" style="color:#ff3b30">加载失败：${e.message}</div>`;
+    }
+  }
+
+  function renderGroups(groups) {
+    const container = document.getElementById('settings-container');
+    container.innerHTML = '';
+
+    groups.forEach(group => {
+      const card = document.createElement('div');
+      card.className = 'group-card';
+      card.innerHTML = `<div class="group-title">${escHtml(group.group)}</div>`;
+
+      group.items.forEach(item => {
+        card.appendChild(renderRow(item));
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  function renderRow(item) {
+    const row = document.createElement('div');
+    row.className = 'setting-row';
+
+    const labelHtml = `
+      <div class="row-label">
+        ${item.has_value ? '<span class="has-value-dot"></span>' : ''}
+        ${escHtml(item.label)}
+        ${item.secret ? '<span class="secret-badge">密钥</span>' : ''}
+      </div>
+    `;
+
+    let inputHtml = '';
+    const inputId = `inp_${item.key}`;
+
+    if (item.options) {
+      // Select
+      const opts = item.options.map(o =>
+        `<option value="${escHtml(o)}" ${o === item.value ? 'selected' : ''}>${escHtml(o)}</option>`
+      ).join('');
+      inputHtml = `
+        <div class="input-row">
+          <select id="${inputId}">${opts}</select>
+          <button class="btn-save" onclick="saveSetting('${item.key}', '${inputId}')">保存</button>
+        </div>
+      `;
+    } else if (item.multiline) {
+      // Textarea
+      inputHtml = `
+        <div class="input-row">
+          <textarea id="${inputId}" placeholder="${item.has_value ? '（已设置）' : item.default || '每行一个…'}">${escHtml(item.value)}</textarea>
+          <button class="btn-save" onclick="saveSetting('${item.key}', '${inputId}')">保存</button>
+        </div>
+      `;
+    } else if (item.secret) {
+      // Password input
+      inputHtml = `
+        <div class="input-row">
+          <input type="password" id="${inputId}"
+            placeholder="${item.has_value ? '（已设置，输入新值以更新）' : '请输入…'}"
+            autocomplete="off">
+          <button class="btn-eye" onclick="toggleEye('${inputId}', this)">显示</button>
+          <button class="btn-save" onclick="saveSetting('${item.key}', '${inputId}')">保存</button>
+        </div>
+      `;
+    } else {
+      // Text input
+      inputHtml = `
+        <div class="input-row">
+          <input type="text" id="${inputId}"
+            value="${escHtml(item.value)}"
+            placeholder="${item.default || '请输入…'}">
+          <button class="btn-save" onclick="saveSetting('${item.key}', '${inputId}')">保存</button>
+        </div>
+      `;
+    }
+
+    row.innerHTML = labelHtml + inputHtml;
+    return row;
+  }
+
+  function toggleEye(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      btn.textContent = '隐藏';
+    } else {
+      inp.type = 'password';
+      btn.textContent = '显示';
+    }
+  }
+
+  async function saveSetting(key, inputId) {
+    const el = document.getElementById(inputId);
+    const value = el.value.trim();
+
+    if (!value) {
+      showToast('请输入内容后再保存', 'error');
+      return;
+    }
+
+    const btn = el.closest('.input-row').querySelector('.btn-save');
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '保存中…';
+
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || '保存失败');
+      }
+      showToast(`已保存`, 'success');
+
+      // Secret 字段保存后清空（避免明文留在 input）
+      const group = groupsData.flatMap(g => g.items).find(i => i.key === key);
+      if (group && group.secret) {
+        el.value = '';
+        el.placeholder = '（已设置，输入新值以更新）';
+      }
+
+      // 更新绿点
+      const dot = el.closest('.setting-row').querySelector('.has-value-dot');
+      if (!dot) {
+        const labelEl = el.closest('.setting-row').querySelector('.row-label');
+        const dotEl = document.createElement('span');
+        dotEl.className = 'has-value-dot';
+        labelEl.insertBefore(dotEl, labelEl.firstChild);
+      }
+
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, m =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])
+    );
+  }
+
+  loadSettings();
+</script>
+</body>
+</html>
