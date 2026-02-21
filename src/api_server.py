@@ -29,7 +29,8 @@ def run_pipeline(
     job_id: str,
     image_path: str,
     product_name: str,
-    selling_points: List[str]
+    selling_points: List[str],
+    video_service: str = "seedance"
 ):
     """
     后台线程：执行完整的视频生成流程
@@ -89,20 +90,25 @@ def run_pipeline(
             f.write(video_prompt)
 
         # ── 步骤 3: 生成视频 ─────────────────────────────────────
+        service_label = "豆包 Seedance" if video_service == "seedance" else "Creatok"
         jobs[job_id].update({
             "step": 3,
-            "step_name": "AI 生成视频（约 2-3 分钟）"
+            "step_name": f"AI 生成视频（{service_label}，约 2-3 分钟）"
         })
 
         safe_name = product_name.replace(" ", "_").replace("/", "_")
         video_output_path = output_dir / f"{safe_name}.mp4"
+
+        # Seedance 推荐 5 秒，Creatok 推荐 15 秒
+        duration = 5 if video_service == "seedance" else 15
 
         video_gen = VideoGenerator()
         video_result = video_gen.generate_video(
             prompt=video_prompt,
             output_path=str(video_output_path),
             reference_image_path=processed_image_path,
-            duration=15,
+            duration=duration,
+            backend=video_service,
             wait=True
         )
 
@@ -140,7 +146,8 @@ def run_pipeline(
 async def start_generation(
     image: UploadFile = File(..., description="产品图片"),
     product_name: str = Form(..., description="产品名称"),
-    selling_points: str = Form(..., description="卖点列表（每行一个）")
+    selling_points: str = Form(..., description="卖点列表（每行一个）"),
+    video_service: str = Form("seedance", description="视频生成服务：seedance 或 creatok")
 ):
     """
     开始生成视频任务
@@ -150,6 +157,10 @@ async def start_generation(
     # 验证文件类型
     if not image.content_type or not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="请上传图片文件（JPG/PNG）")
+
+    # 验证视频服务参数
+    if video_service not in ("seedance", "creatok"):
+        raise HTTPException(status_code=400, detail="video_service 只支持 seedance 或 creatok")
 
     # 解析卖点（每行一个）
     points = [p.strip() for p in selling_points.strip().splitlines() if p.strip()]
@@ -175,13 +186,14 @@ async def start_generation(
         "status": "queued",
         "step": 0,
         "step_name": "等待中",
-        "product_name": product_name
+        "product_name": product_name,
+        "video_service": video_service
     }
 
     # 启动后台线程
     t = threading.Thread(
         target=run_pipeline,
-        args=(job_id, str(image_path), product_name, points),
+        args=(job_id, str(image_path), product_name, points, video_service),
         daemon=True
     )
     t.start()

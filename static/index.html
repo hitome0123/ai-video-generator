@@ -231,6 +231,58 @@
       display: none;
     }
 
+    /* ── 服务选择器 ── */
+    .service-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .service-option {
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .service-option input[type=radio] {
+      position: absolute;
+      opacity: 0;
+      width: 0; height: 0;
+    }
+    .service-option.selected {
+      border-color: #000;
+      background: #fafafa;
+    }
+    .service-option:hover { border-color: #aaa; }
+    .service-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .service-badge {
+      font-size: 10px;
+      background: #000;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .service-desc {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.5;
+    }
+    .service-cost {
+      font-size: 12px;
+      color: #34c759;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
     /* ── 成本提示 ── */
     .cost-tip {
       text-align: center;
@@ -291,11 +343,37 @@
         placeholder="30天超长续航&#10;50米防水&#10;24小时心率监测&#10;100+ 运动模式"></textarea>
     </div>
 
+    <!-- 3. 选择视频服务 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="num">3</span> 选择视频生成服务
+      </div>
+      <div class="service-options">
+        <!-- Seedance -->
+        <label class="service-option selected" id="opt-seedance" onclick="selectService('seedance')">
+          <input type="radio" name="video_service" value="seedance" checked>
+          <div class="service-name">
+            豆包 Seedance
+            <span class="service-badge">推荐</span>
+          </div>
+          <div class="service-desc">字节跳动官方模型<br>国内直连 · 图生视频</div>
+          <div class="service-cost">约 ¥0.9 / 次</div>
+        </label>
+        <!-- Creatok -->
+        <label class="service-option" id="opt-creatok" onclick="selectService('creatok')">
+          <input type="radio" name="video_service" value="creatok">
+          <div class="service-name">Creatok</div>
+          <div class="service-desc">国际服务<br>15 秒视频</div>
+          <div class="service-cost">约 ¥2.2 / 次</div>
+        </label>
+      </div>
+    </div>
+
     <!-- 生成按钮 -->
     <button class="generate-btn" id="generate-btn" onclick="startGeneration()">
       开始生成视频
     </button>
-    <div class="cost-tip">每次生成约花费 $0.31（含图片处理 + 视频生成）</div>
+    <div class="cost-tip" id="cost-tip">每次生成约花费 ¥0.9（豆包 Seedance）</div>
 
   </div>
 
@@ -367,6 +445,20 @@
 <script>
   let currentJobId = null;
   let pollTimer = null;
+  let selectedService = 'seedance';
+
+  // ── 视频服务选择 ──────────────────────────────────────────
+  function selectService(service) {
+    selectedService = service;
+    document.getElementById('opt-seedance').classList.toggle('selected', service === 'seedance');
+    document.getElementById('opt-creatok').classList.toggle('selected', service === 'creatok');
+    const costTip = document.getElementById('cost-tip');
+    if (service === 'seedance') {
+      costTip.textContent = '每次生成约花费 ¥0.9（豆包 Seedance）';
+    } else {
+      costTip.textContent = '每次生成约花费 ¥2.2（Creatok）';
+    }
+  }
 
   // ── 图片上传处理 ──────────────────────────────────────────
 
@@ -435,6 +527,7 @@
     formData.append('image', imageFile);
     formData.append('product_name', productName);
     formData.append('selling_points', sellingPoints);
+    formData.append('video_service', selectedService);
 
     // 锁定按钮
     const btn = document.getElementById('generate-btn');

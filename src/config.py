@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     creatok_api_key: str = ""
     creatok_api_url: str = "https://api.creatok.ai/v1"
 
+    # 豆包 Seedance（火山引擎 ARK）
+    ark_api_key: str = ""
+    seedance_model_id: str = "doubao-seedance-1-0-lite-i2v-250428"
+    seedance_api_url: str = "https://ark.cn-beijing.volces.com/api/v3"
+
     # 路径配置
     output_dir: Path = Path("./output")
     temp_dir: Path = Path("./temp")
