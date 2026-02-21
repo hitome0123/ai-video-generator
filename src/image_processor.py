@@ -13,6 +13,7 @@ from PIL import Image
 import httpx
 
 from .config import settings
+from .utils import parse_json_response
 
 
 class ImageProcessor:
@@ -94,16 +95,12 @@ class ImageProcessor:
         print(f"✅ 产品分析完成")
         print(f"分析结果: {result_text[:200]}...")
 
-        # 简单解析（生产环境应该用更严格的 JSON 解析）
-        import json
-        try:
-            result = json.loads(result_text)
-        except:
-            # 如果不是标准 JSON，返回原始文本
+        result = parse_json_response(result_text)
+        if not isinstance(result, dict):
             result = {
                 "product_name": "未知产品",
                 "description": result_text,
-                "white_bg_prompt": result_text
+                "white_bg_prompt": result_text,
             }
 
         return result

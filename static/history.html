@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>历史记录 - AI 短视频生成器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #000;
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 20px; font-weight: 600; }
+    header span { font-size: 13px; color: #aaa; display: block; margin-top: 2px; }
+    header a.back-link {
+      font-size: 13px;
+      color: #aaa;
+      text-decoration: none;
+      padding: 6px 12px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    header a.back-link:hover { color: #fff; border-color: #888; }
+
+    .container {
+      max-width: 760px;
+      margin: 40px auto;
+      padding: 0 20px 60px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .toolbar h2 { font-size: 18px; font-weight: 600; }
+    .toolbar span { font-size: 13px; color: #999; }
+    .refresh-btn {
+      padding: 8px 16px;
+      background: none;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #555;
+      transition: border-color 0.2s;
+    }
+    .refresh-btn:hover { border-color: #999; }
+
+    /* ── 列表 ── */
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .job-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .job-thumb {
+      width: 54px; height: 54px;
+      border-radius: 10px;
+      background: #f0f0f0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .job-info { flex: 1; min-width: 0; }
+    .job-name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .job-meta {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .job-meta .badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge.success  { background: #d4edda; color: #155724; }
+    .badge.failed   { background: #f8d7da; color: #721c24; }
+    .badge.queued,
+    .badge.processing { background: #fff3cd; color: #856404; }
+
+    .job-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn-download {
+      padding: 8px 14px;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-download:hover { opacity: 0.8; }
+    .btn-delete {
+      padding: 8px 12px;
+      background: none;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #c00;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      white-space: nowrap;
+    }
+    .btn-delete:hover { border-color: #c00; }
+
+    /* ── 空状态 ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: #aaa;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 15px; }
+    .empty-state a {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #000;
+      color: #fff;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .empty-state a:hover { opacity: 0.85; }
+
+    /* ── 加载 ── */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>历史记录</h1>
+    <span>最近生成的视频任务</span>
+  </div>
+  <a class="back-link" href="/">返回生成</a>
+</header>
+
+<div class="container">
+
+  <div class="toolbar">
+    <h2>任务列表</h2>
+    <button class="refresh-btn" onclick="loadHistory()">刷新</button>
+  </div>
+
+  <div id="loading" class="loading">加载中...</div>
+  <div id="empty" class="empty-state" style="display:none">
+    <div class="icon">📭</div>
+    <p>暂无历史记录</p>
+    <a href="/">去生成第一个视频</a>
+  </div>
+  <div class="job-list" id="job-list"></div>
+
+</div>
+
+<script>
+  const STATUS_LABELS = {
+    success: '成功',
+    failed: '失败',
+    processing: '生成中',
+    queued: '排队中',
+  };
+  const SERVICE_LABELS = {
+    seedance: '豆包 Seedance',
+    creatok: 'Creatok',
+  };
+
+  async function loadHistory() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('empty').style.display = 'none';
+    document.getElementById('job-list').innerHTML = '';
+
+    try {
+      const res = await fetch('/api/history');
+      if (!res.ok) throw new Error('获取历史失败');
+      const jobs = await res.json();
+
+      document.getElementById('loading').style.display = 'none';
+
+      if (!jobs.length) {
+        document.getElementById('empty').style.display = 'block';
+        return;
+      }
+
+      const list = document.getElementById('job-list');
+      jobs.forEach(job => {
+        list.appendChild(buildCard(job));
+      });
+
+    } catch (err) {
+      document.getElementById('loading').textContent = '加载失败：' + err.message;
+    }
+  }
+
+  function buildCard(job) {
+    const card = document.createElement('div');
+    card.className = 'job-card';
+    card.id = `card-${job.job_id}`;
+
+    const statusLabel = STATUS_LABELS[job.status] || job.status;
+    const statusClass = job.status;
+    const serviceLabel = SERVICE_LABELS[job.video_service] || job.video_service;
+    const date = job.created_at
+      ? new Date(job.created_at * 1000).toLocaleString('zh-CN', {
+          month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        })
+      : '';
+
+    const extras = [];
+    if (job.add_subtitle) extras.push('字幕');
+    if (job.add_bgm) extras.push('BGM');
+
+    card.innerHTML = `
+      <div class="job-thumb">🎬</div>
+      <div class="job-info">
+        <div class="job-name">${escHtml(job.product_name)}</div>
+        <div class="job-meta">
+          <span class="badge ${statusClass}">${statusLabel}</span>
+          <span>${serviceLabel}</span>
+          ${extras.length ? `<span>${extras.join(' · ')}</span>` : ''}
+          ${date ? `<span>${date}</span>` : ''}
+        </div>
+      </div>
+      <div class="job-actions">
+        ${job.has_video
+          ? `<a class="btn-download" href="/api/download/${job.job_id}" download>⬇️ 下载</a>`
+          : `<span style="font-size:13px;color:#bbb;padding:8px 4px">${statusLabel}</span>`
+        }
+        <button class="btn-delete" onclick="deleteJob('${job.job_id}')">删除</button>
+      </div>
+    `;
+
+    return card;
+  }
+
+  async function deleteJob(jobId) {
+    if (!confirm('确定删除这条记录及对应视频？')) return;
+
+    try {
+      const res = await fetch(`/api/history/${jobId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('删除失败');
+
+      const card = document.getElementById(`card-${jobId}`);
+      if (card) card.remove();
+
+      // 如果列表为空，显示空状态
+      if (!document.querySelector('.job-card')) {
+        document.getElementById('empty').style.display = 'block';
+      }
+
+    } catch (err) {
+      alert('删除失败：' + err.message);
+    }
+  }
+
+  function escHtml(str) {
+    return str.replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+
+  // 页面加载时自动拉取
+  loadHistory();
+</script>
+
+</body>
+</html>

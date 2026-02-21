@@ -8,6 +8,7 @@ from typing import List, Optional, Dict
 from openai import OpenAI
 
 from .config import settings
+from .utils import parse_json_response
 
 
 class PromptGenerator:
@@ -99,18 +100,12 @@ class PromptGenerator:
         print(f"✅ 脚本生成完成")
         print(f"预览: {script_text[:200]}...")
 
-        # 解析 JSON
-        import json
-        try:
-            script = json.loads(script_text)
-        except:
-            # 如果解析失败，返回原始文本
+        script = parse_json_response(script_text)
+        if not isinstance(script, dict):
             script = {
                 "hook": "产品介绍",
-                "scenes": [
-                    {"duration": duration, "description": script_text, "text": ""}
-                ],
-                "cta": "立即购买"
+                "scenes": [{"duration": duration, "description": script_text, "text": ""}],
+                "cta": "立即购买",
             }
 
         return script

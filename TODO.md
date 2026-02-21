@@ -1,6 +1,6 @@
 # TODO清单 - AI短视频制作系统
 
-**整体进度**: 75% (MVP + Web 界面 + Seedance 集成完成)
+**整体进度**: 93% (Phase 8 + 9 + 竞品分析 + Bug修复 全部完成)
 **更新时间**: 2026-02-21
 
 ---
@@ -82,62 +82,61 @@
 
 ---
 
-## 🟡 Phase 8：后处理模块（P1）
+## ✅ Phase 8：后处理模块（2026-02-21 完成）
 
 ### 8.1 字幕合成
-- [ ] `src/post_processor.py` 新建后处理模块
-- [ ] 从 `script.json` 的 `scenes[].text` 读取文案
-- [ ] 调用 FFmpeg 将文字烧录到视频
-- [ ] 支持字体、颜色、位置配置
+- [x] `src/post_processor.py` 新建后处理模块
+- [x] 从 `script.json` 的 `scenes[].text` 读取文案，按 duration 计算时间轴
+- [x] 调用 FFmpeg drawtext 将文字烧录到视频（hook/scenes/cta 分层处理）
+- [x] 自动识别中文字体（macOS/Linux/Windows）
 
 ### 8.2 BGM 添加
-- [ ] 内置 3-5 首免版权背景音乐
-- [ ] FFmpeg 混音（视频音轨 + BGM）
-- [ ] 支持淡入淡出
+- [x] FFmpeg amix 混音（视频音轨 + BGM）
+- [x] 自动降低 BGM 音量（25%），无音轨视频直接添加
+- [x] BGM 文件放置目录：`static/bgm/`（支持 mp3/wav/m4a/aac）
 
-### 8.3 去水印（可选）
-- [ ] 调研 ezremove API 接入方式
-- [ ] 集成去水印（如 Creatok 输出有水印时使用）
+### 8.3 去水印
+- [ ] 调研 ezremove API 接入方式（待定）
 
 ### 8.4 前端更新
-- [ ] `static/index.html` 新增后处理选项
-  - [ ] 开关：是否添加字幕
-  - [ ] 开关：是否添加 BGM
+- [x] `static/index.html` 新增后处理选项卡（字幕 / BGM 开关）
+- [x] add_subtitle / add_bgm 随表单提交到 /api/generate
 
 ---
 
-## 🟡 Phase 9：历史记录（P1）
+## ✅ Phase 9：历史记录（2026-02-21 完成）
 
 ### 9.1 数据持久化
-- [ ] `src/database.py` 使用 SQLite 存储任务
-  - [ ] 任务基本信息（job_id, 产品名, 状态, 时间）
-  - [ ] 视频文件路径
-  - [ ] 生成的脚本和 Prompt
-- [ ] 服务器重启后历史记录不丢失
+- [x] `src/database.py` 使用 SQLite 存储任务（`data/jobs.db`）
+  - [x] 任务基本信息（job_id, 产品名, 状态, 时间、服务类型）
+  - [x] 视频文件路径、脚本 JSON、视频 Prompt
+- [x] 服务器重启后历史记录不丢失（内存+DB 双写）
 
 ### 9.2 API 新增
-- [ ] `GET /api/history` 获取历史任务列表
-- [ ] `DELETE /api/history/{job_id}` 删除记录+文件
+- [x] `GET /api/history` 获取最近 50 条任务
+- [x] `DELETE /api/history/{job_id}` 删除记录 + 视频文件目录
 
 ### 9.3 前端：历史页面
-- [ ] `static/history.html` 历史记录列表
-  - [ ] 显示产品名、生成时间、状态
-  - [ ] 点击可重新下载视频
-  - [ ] 支持删除
+- [x] `static/history.html` 历史记录列表
+  - [x] 显示产品名、生成时间、状态、服务类型
+  - [x] 点击可直接下载视频
+  - [x] 支持删除（含确认提示）
+- [x] 主页 header 新增「历史记录」导航链接
 
 ---
 
-## 🟢 Phase 10：竞品分析（P2，标准版）
+## ✅ Phase 10：竞品分析 / AI 卖点建议（2026-02-21 完成）
 
-### 10.1 FastMoss 对接
-- [ ] 调研 FastMoss API 或爬虫方案
-- [ ] 输入产品类目关键词，获取 TOP10 爆款视频
-- [ ] 提取视频卖点文案
+### 已实现（AI 版）
+- [x] `src/competitor_analyzer.py` GPT-4o 驱动
+- [x] `suggest_selling_points()`：AI 根据产品名补充卖点，前端一键追加
+- [x] `analyze_competitor_text()`：粘贴竞品文案，提取卖点 + 钩子句式 + 策略摘要
+- [x] 前端折叠式「竞品分析」面板，点击卖点标签自动填入文本框
+- [x] API：`POST /api/suggest-selling-points`、`POST /api/analyze-competitor`
 
-### 10.2 TikTok 链接解析
-- [ ] 输入 TikTok 视频链接
-- [ ] AI 分析视频内容，自动提取卖点
-- [ ] 填充到卖点输入框
+### 待定（FastMoss 集成）
+- [ ] 调研 FastMoss API 或爬虫方案（需订阅账号）
+- [ ] 输入类目关键词，自动获取 TOP10 爆款卖点
 
 ---
 
@@ -161,11 +160,11 @@
 | Phase 5 | API 服务 | 8h | P1 | ✅ 已完成 |
 | Phase 6 | Web 界面 | 12h | P2 | ✅ 已完成 |
 | Phase 7 | **Seedance 集成** | 4-6h | **P0** | ✅ 已完成 |
-| Phase 8 | 后处理（字幕/BGM） | 6-8h | P1 | 🟡 待开发 |
-| Phase 9 | 历史记录 | 4-6h | P1 | 🟡 待开发 |
-| Phase 10 | 竞品分析 | 12h | P2 | 🟢 待开发 |
+| Phase 8 | 后处理（字幕/BGM） | 6-8h | P1 | ✅ 已完成 |
+| Phase 9 | 历史记录 | 4-6h | P1 | ✅ 已完成 |
+| Phase 10 | 竞品分析（AI 版） | 6h | P2 | ✅ 已完成 |
 | Phase 11 | 批量处理 | 8h | P2 | 🟢 待开发 |
-| **总计** | | **~100h** | | **约 75% 完成** |
+| **总计** | | **~100h** | | **约 93% 完成** |
 
 ---
 
@@ -174,7 +173,7 @@
 | 问题 | 文件 | 说明 |
 |------|------|------|
 | ~~Creatok 参考图上传未实现~~ | ~~`src/video_generator.py`~~ | ✅ Phase 7 已修复 |
-| JSON 解析用裸 except | `src/image_processor.py`, `src/prompt_generator.py` | 应改为解析 markdown 代码块中的 JSON |
+| ~~JSON 解析用裸 except~~ | ~~`src/image_processor.py`, `src/prompt_generator.py`~~ | ✅ 已修复，改用 `utils.parse_json_response()` |
 | 无重试机制 | `src/video_generator.py` | API 调用失败无自动重试 |
 
 ---

@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from typing import List
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Body
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
@@ -17,11 +17,14 @@ from .config import settings
 from .image_processor import ImageProcessor
 from .prompt_generator import PromptGenerator
 from .video_generator import VideoGenerator
+from .post_processor import PostProcessor
+from .competitor_analyzer import suggest_selling_points, analyze_competitor_text
+from . import database as db
 
 
 app = FastAPI(title="AI Video Generator")
 
-# 内存中的任务状态存储（重启后清空）
+# 内存任务状态（供实时轮询用，同时写入 SQLite 持久化）
 jobs: dict = {}
 
 
@@ -30,7 +33,9 @@ def run_pipeline(
     image_path: str,
     product_name: str,
     selling_points: List[str],
-    video_service: str = "seedance"
+    video_service: str = "seedance",
+    add_subtitle: bool = False,
+    add_bgm: bool = False,
 ):
     """
     后台线程：执行完整的视频生成流程
@@ -38,18 +43,19 @@ def run_pipeline(
     步骤:
     1. 图片处理（GPT-4o Vision 分析 + DALL-E 3 白底图）
     2. 脚本生成（GPT-4o 视频脚本 + Prompt）
-    3. 视频生成（Creatok API）
+    3. 视频生成（Seedance / Creatok）
+    4. 后处理（字幕 + BGM，按需执行）
     """
     output_dir = settings.output_dir / job_id
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    def _update(data: dict):
+        jobs[job_id].update(data)
+        db.update_job(job_id, **data)
+
     try:
         # ── 步骤 1: 图片处理 ──────────────────────────────────────
-        jobs[job_id].update({
-            "status": "processing",
-            "step": 1,
-            "step_name": "分析产品图片"
-        })
+        _update({"status": "processing", "step": 1, "step_name": "分析产品图片"})
 
         processor = ImageProcessor()
         image_result = processor.process_image(
@@ -67,17 +73,15 @@ def run_pipeline(
         processed_image_path = image_result["output_path"]
 
         # ── 步骤 2: 生成脚本和 Prompt ────────────────────────────
-        jobs[job_id].update({
-            "step": 2,
-            "step_name": "生成视频脚本"
-        })
+        _update({"step": 2, "step_name": "生成视频脚本"})
 
+        duration = 5 if video_service == "seedance" else 15
         generator = PromptGenerator()
         prompt_result = generator.generate_complete_prompt(
             product_name=product_name,
             product_description=product_description,
             selling_points=selling_points,
-            duration=15
+            duration=duration
         )
 
         video_prompt = prompt_result["video_prompt"]
@@ -91,47 +95,57 @@ def run_pipeline(
 
         # ── 步骤 3: 生成视频 ─────────────────────────────────────
         service_label = "豆包 Seedance" if video_service == "seedance" else "Creatok"
-        jobs[job_id].update({
-            "step": 3,
-            "step_name": f"AI 生成视频（{service_label}，约 2-3 分钟）"
-        })
+        _update({"step": 3, "step_name": f"AI 生成视频（{service_label}，约 2-3 分钟）"})
 
         safe_name = product_name.replace(" ", "_").replace("/", "_")
-        video_output_path = output_dir / f"{safe_name}.mp4"
-
-        # Seedance 推荐 5 秒，Creatok 推荐 15 秒
-        duration = 5 if video_service == "seedance" else 15
+        raw_video_path = output_dir / f"{safe_name}_raw.mp4"
+        final_video_path = output_dir / f"{safe_name}.mp4"
 
         video_gen = VideoGenerator()
         video_result = video_gen.generate_video(
             prompt=video_prompt,
-            output_path=str(video_output_path),
+            output_path=str(raw_video_path),
             reference_image_path=processed_image_path,
             duration=duration,
             backend=video_service,
             wait=True
         )
 
-        if video_result["status"] == "success":
-            jobs[job_id].update({
-                "status": "success",
-                "step": 3,
-                "step_name": "生成完成",
-                "video_path": str(video_output_path),
-                "script": script,
-                "video_prompt": video_prompt
-            })
-        else:
+        if video_result["status"] != "success":
             raise Exception(video_result.get("error", "视频生成失败，请稍后重试"))
 
-    except Exception as e:
-        jobs[job_id].update({
-            "status": "failed",
-            "error": str(e)
+        # ── 步骤 4: 后处理（字幕 / BGM）────────────────────────
+        if add_subtitle or add_bgm:
+            _update({"step": 4, "step_name": "后处理（字幕 / BGM）"})
+            pp = PostProcessor()
+            pp.process(
+                video_path=str(raw_video_path),
+                output_path=str(final_video_path),
+                script=script if add_subtitle else None,
+                add_subtitle=add_subtitle,
+                add_bgm=add_bgm,
+            )
+        else:
+            shutil.copy2(str(raw_video_path), str(final_video_path))
+
+        # 清理临时原始视频
+        try:
+            raw_video_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+        _update({
+            "status": "success",
+            "step_name": "生成完成",
+            "video_path": str(final_video_path),
+            "script": json.dumps(script, ensure_ascii=False),
+            "video_prompt": video_prompt,
         })
 
+    except Exception as e:
+        _update({"status": "failed", "error": str(e)})
+
     finally:
-        # 清理上传的临时图片
         try:
             Path(image_path).unlink(missing_ok=True)
         except Exception:
@@ -147,29 +161,26 @@ async def start_generation(
     image: UploadFile = File(..., description="产品图片"),
     product_name: str = Form(..., description="产品名称"),
     selling_points: str = Form(..., description="卖点列表（每行一个）"),
-    video_service: str = Form("seedance", description="视频生成服务：seedance 或 creatok")
+    video_service: str = Form("seedance", description="视频生成服务：seedance 或 creatok"),
+    add_subtitle: str = Form("false", description="是否添加字幕"),
+    add_bgm: str = Form("false", description="是否混入 BGM"),
 ):
-    """
-    开始生成视频任务
-
-    返回 job_id，前端通过 /api/status/{job_id} 轮询进度
-    """
-    # 验证文件类型
+    """开始生成视频任务，返回 job_id"""
     if not image.content_type or not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="请上传图片文件（JPG/PNG）")
 
-    # 验证视频服务参数
     if video_service not in ("seedance", "creatok"):
         raise HTTPException(status_code=400, detail="video_service 只支持 seedance 或 creatok")
 
-    # 解析卖点（每行一个）
     points = [p.strip() for p in selling_points.strip().splitlines() if p.strip()]
     if not points:
         raise HTTPException(status_code=400, detail="请至少填写一个卖点")
     if len(points) > 10:
         raise HTTPException(status_code=400, detail="卖点最多填写 10 个")
 
-    # 保存上传的图片到临时目录
+    sub = add_subtitle.lower() in ("true", "1", "yes")
+    bgm = add_bgm.lower() in ("true", "1", "yes")
+
     upload_dir = settings.temp_dir / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
 
@@ -181,19 +192,29 @@ async def start_generation(
     with open(image_path, "wb") as f:
         f.write(content)
 
-    # 初始化任务状态
+    # 初始化内存状态
     jobs[job_id] = {
         "status": "queued",
         "step": 0,
         "step_name": "等待中",
         "product_name": product_name,
-        "video_service": video_service
+        "video_service": video_service,
+        "add_subtitle": sub,
+        "add_bgm": bgm,
     }
 
-    # 启动后台线程
+    # 持久化到数据库
+    db.create_job(
+        job_id=job_id,
+        product_name=product_name,
+        video_service=video_service,
+        add_subtitle=sub,
+        add_bgm=bgm,
+    )
+
     t = threading.Thread(
         target=run_pipeline,
-        args=(job_id, str(image_path), product_name, points, video_service),
+        args=(job_id, str(image_path), product_name, points, video_service, sub, bgm),
         daemon=True
     )
     t.start()
@@ -204,24 +225,27 @@ async def start_generation(
 @app.get("/api/status/{job_id}")
 async def get_status(job_id: str):
     """查询任务状态和进度"""
+    # 优先从内存中读（内存有则说明任务是本次启动后创建的）
     job = jobs.get(job_id)
+    if not job:
+        # 尝试从数据库恢复（跨重启）
+        job = db.get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="任务不存在")
 
-    # 只返回前端需要的字段，不暴露文件路径
     return {
         "status": job["status"],
         "step": job.get("step", 0),
         "step_name": job.get("step_name", ""),
         "error": job.get("error"),
-        "product_name": job.get("product_name", "")
+        "product_name": job.get("product_name", ""),
     }
 
 
 @app.get("/api/download/{job_id}")
 async def download_video(job_id: str):
     """下载生成的视频文件"""
-    job = jobs.get(job_id)
+    job = jobs.get(job_id) or db.get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="任务不存在")
     if job["status"] != "success":
@@ -237,6 +261,85 @@ async def download_video(job_id: str):
         media_type="video/mp4",
         filename=f"{safe_name}.mp4"
     )
+
+
+@app.get("/api/history")
+async def get_history():
+    """获取历史任务列表（最近 50 条）"""
+    records = db.list_jobs(limit=50)
+    result = []
+    for r in records:
+        result.append({
+            "job_id": r["job_id"],
+            "product_name": r["product_name"],
+            "status": r["status"],
+            "video_service": r["video_service"],
+            "add_subtitle": r["add_subtitle"],
+            "add_bgm": r["add_bgm"],
+            "created_at": r["created_at"],
+            "has_video": bool(r.get("video_path") and Path(r["video_path"]).exists()),
+        })
+    return result
+
+
+@app.delete("/api/history/{job_id}")
+async def delete_history(job_id: str):
+    """删除任务记录及对应视频文件"""
+    record = db.get_job(job_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    # 删除视频输出目录
+    job_dir = settings.output_dir / job_id
+    if job_dir.exists():
+        shutil.rmtree(job_dir, ignore_errors=True)
+
+    db.delete_job(job_id)
+
+    # 同步清理内存
+    jobs.pop(job_id, None)
+
+    return {"status": "deleted"}
+
+
+@app.post("/api/suggest-selling-points")
+async def api_suggest_selling_points(
+    product_name: str = Body(..., embed=True),
+    existing_points: List[str] = Body(default=[], embed=True),
+):
+    """AI 卖点建议：根据产品名称 + 已有卖点，返回补充建议"""
+    if not product_name.strip():
+        raise HTTPException(status_code=400, detail="产品名称不能为空")
+
+    result = suggest_selling_points(
+        product_name=product_name.strip(),
+        existing_points=existing_points,
+    )
+
+    if result["status"] == "error":
+        raise HTTPException(status_code=503, detail=result["reason"])
+
+    return {"suggestions": result["suggestions"]}
+
+
+@app.post("/api/analyze-competitor")
+async def api_analyze_competitor(
+    text: str = Body(..., embed=True),
+):
+    """分析竞品文案，提取卖点和钩子"""
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="竞品文案不能为空")
+
+    result = analyze_competitor_text(text.strip())
+
+    if result["status"] == "error":
+        raise HTTPException(status_code=503, detail=result["reason"])
+
+    return {
+        "selling_points": result["selling_points"],
+        "hook_ideas": result["hook_ideas"],
+        "summary": result["summary"],
+    }
 
 
 # ── 挂载静态文件（必须放在所有 API 路由之后）────────────────────
