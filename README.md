@@ -1,39 +1,46 @@
-# AI TikTok Video Generator - MVP
+# AI 短视频生成器
 
-**状态**: ✅ MVP 开发完成，可测试使用
+**输入产品图片，自动输出 TikTok 带货短视频**
 
-AI 驱动的 TikTok 产品视频自动生成系统。上传产品图片，自动完成扩图、脚本生成、视频制作全流程。
+AI 驱动的一站式视频生成系统，面向跨境电商卖家。上传产品照片，系统自动完成图片处理、脚本生成、AI 视频制作全流程，10 分钟出片。
 
-## 🚀 MVP Features（已实现）
+---
 
-- ✅ **AI 图片处理**: ChatGPT Vision 分析产品 + DALL·E 3 生成白底图
-- ✅ **智能脚本生成**: GPT-4 生成 TikTok 爆款视频脚本
-- ✅ **AI 视频生成**: 集成 Creatok API 自动生成 9:16 竖版视频
-- ✅ **一站式流程**: 命令行一键执行，从图片到成品视频
+## 功能特性
 
-## 💡 MVP 工作流程
+- **AI 图片处理** — GPT-4o Vision 分析产品外观，DALL·E 3 生成专业白底图
+- **智能脚本生成** — GPT-4o 生成 TikTok 爆款脚本（痛点 + 卖点 + CTA 结构）
+- **双引擎视频生成** — 支持豆包 Seedance（推荐）和 Creatok 两种 AI 视频服务
+- **Web 界面** — 浏览器上传图片、填写卖点、一键生成、下载视频，无需命令行
+
+---
+
+## 生成流程
 
 ```
 产品图片 (JPG/PNG)
     ↓
-[步骤 1] ChatGPT Vision 分析产品
+Step 1  GPT-4o Vision 分析产品  →  产品描述 JSON
     ↓
-[步骤 2] DALL·E 3 生成白底图（1024x1792）
+Step 2  DALL·E 3 生成白底图    →  1024×1792 PNG
     ↓
-[步骤 3] GPT-4 生成视频脚本（痛点+卖点+CTA）
+Step 3  GPT-4o 生成视频脚本   →  script.json（hook / scenes / cta）
     ↓
-[步骤 4] GPT-4 优化视频 Prompt
+Step 4  GPT-4o 优化视频 Prompt →  video_prompt.txt
     ↓
-[步骤 5] Creatok 生成视频（15秒）
-    ↓
-输出: MP4 视频 + 脚本 JSON + Prompt TXT
+Step 5  AI 视频生成
+        ├── 豆包 Seedance（推荐）→  5 秒 MP4，约 ¥0.9
+        └── Creatok             →  15 秒 MP4，约 ¥2.2
 ```
 
-## ⚡ 快速开始
+---
+
+## 快速开始
 
 ### 1. 安装依赖
 
 ```bash
+git clone https://github.com/hitome0123/ai-video-generator.git
 cd ai-video-generator
 pip install -r requirements.txt
 ```
@@ -42,103 +49,125 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# 编辑 .env，填入以下 API Key:
-# - OPENAI_API_KEY (必需)
-# - CREATOK_API_KEY (必需)
 ```
 
-### 3. 运行示例
+编辑 `.env`，填入以下 Key：
+
+```env
+# 必填
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
+
+# 视频生成（二选一，推荐 Seedance）
+ARK_API_KEY=xxxxxxxxxxxxxxxx        # 豆包 Seedance（火山引擎）
+CREATOK_API_KEY=xxxxxxxxxxxxxxxx    # Creatok（备选）
+```
+
+**API Key 获取地址：**
+
+| Key | 申请地址 |
+|-----|---------|
+| OPENAI_API_KEY | https://platform.openai.com/api-keys |
+| ARK_API_KEY | https://console.volcengine.com → 火山方舟 → API Key 管理 |
+| CREATOK_API_KEY | https://www.creatok.ai |
+
+### 3. 启动 Web 界面（推荐）
 
 ```bash
+python run.py
+```
+
+浏览器打开 **http://localhost:8000**，按页面引导操作即可。
+
+### 4. 命令行模式（可选）
+
+```bash
+python main.py <图片路径> <产品名称> <卖点1> [卖点2] ...
+
+# 示例
 python main.py smartwatch.jpg "智能手表V8 Pro" "30天续航" "50米防水" "心率监测"
 ```
 
-**参数说明**:
-- `smartwatch.jpg`: 产品图片路径
-- `"智能手表V8 Pro"`: 产品名称
-- `"30天续航"` `"50米防水"` `"心率监测"`: 卖点列表（3-5个）
+---
 
-### 4. 查看输出
+## 输出文件
 
 ```
-output/smartwatch/
-├── processed/           # 处理后的图片
-│   └── white_bg.png     # DALL·E 生成的白底图
-├── script.json          # 视频脚本（含分镜）
-├── video_prompt.txt     # 视频生成 Prompt
-└── 智能手表V8_Pro.mp4   # 生成的视频
+output/<产品名>/
+├── processed/
+│   └── white_bg.png        # DALL·E 生成的白底图
+├── script.json             # 视频脚本（hook / scenes / cta）
+├── video_prompt.txt        # AI 视频生成 Prompt
+└── 智能手表V8_Pro.mp4      # 成品视频
 ```
 
-## Documentation
+---
 
-- [Product Requirements (PRD)](docs/PRD.md)
-- [API Documentation](docs/API.md)
-- [Deployment Guide](docs/DEPLOY.md)
-
-## Project Structure
+## 项目结构
 
 ```
 ai-video-generator/
-├── client/                 # Next.js frontend
-│   ├── app/
-│   ├── components/
-│   └── package.json
-├── server/                 # FastAPI backend
-│   ├── api/
-│   ├── services/
-│   ├── models/
-│   └── requirements.txt
-├── n8n-workflows/          # n8n workflow JSON files
-│   ├── main-workflow.json
-│   └── video-generation.json
-├── docs/                   # Documentation
-│   ├── PRD.md
-│   └── API.md
-├── docker-compose.yml
-└── README.md
+├── run.py                  # 一键启动 Web 服务器
+├── main.py                 # 命令行工具
+├── requirements.txt
+├── .env.example            # API Key 配置模板
+├── src/
+│   ├── config.py           # 配置管理
+│   ├── image_processor.py  # 图片处理（GPT-4o + DALL·E 3）
+│   ├── prompt_generator.py # 脚本 & Prompt 生成（GPT-4o）
+│   ├── video_generator.py  # 视频生成（Seedance / Creatok）
+│   └── api_server.py       # FastAPI 后端
+├── static/
+│   └── index.html          # Web 前端
+├── docs/
+│   ├── PRD.md              # 产品需求文档
+│   └── QUICKSTART.md       # 详细上手指南
+└── output/                 # 视频输出目录（自动创建）
 ```
 
-## Environment Variables
+---
 
-```env
-# OpenAI
-OPENAI_API_KEY=sk-xxx
+## 视频服务对比
 
-# Sora (if available)
-SORA_API_KEY=xxx
+| 项目 | 豆包 Seedance（推荐）| Creatok |
+|------|---------------------|---------|
+| 视频时长 | 5 秒 | 15 秒 |
+| 单次成本 | ~¥0.9 | ~¥2.2 |
+| 网络要求 | 国内直连 | 需境外网络 |
+| 图生视频 | ✅ 支持 | ✅ 支持 |
 
-# Creatok
-CREATOK_API_KEY=xxx
+---
 
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/ai_video
+## 开发进度
 
-# Storage
-OSS_ACCESS_KEY=xxx
-OSS_SECRET_KEY=xxx
-OSS_BUCKET=ai-video-generator
-```
+### 已完成
 
-## 📋 Roadmap
+- [x] 图片处理模块（GPT-4o Vision + DALL·E 3）
+- [x] Prompt 生成模块（GPT-4o 脚本 + 视频 Prompt）
+- [x] 视频生成模块（豆包 Seedance + Creatok 双引擎）
+- [x] FastAPI 后端服务
+- [x] Web 界面（上传 / 选择服务 / 进度展示 / 下载）
+- [x] 命令行工具
 
-### Phase 1: MVP ✅ 已完成（2026-02-20）
-- [x] 图片处理模块（ChatGPT Vision + DALL·E 3）
-- [x] Prompt 生成模块（GPT-4 脚本生成）
-- [x] 视频生成模块（Creatok 集成）
-- [x] 命令行工具（main.py）
+### 开发中 / 规划中
 
-### Phase 2: 完整功能（开发中）
-- [ ] FastMoss 竞品分析集成
-- [ ] 去水印功能（ezremove API）
-- [ ] 批量处理（Excel 导入）
-- [ ] FastAPI 服务端
-- [ ] Web 界面（Next.js）
+- [ ] 后处理：FFmpeg 自动添加字幕 + BGM
+- [ ] 历史记录：任务列表持久化，支持重新下载
+- [ ] 竞品分析：FastMoss 集成，自动提取爆款卖点
+- [ ] 批量处理：Excel 导入，多产品队列生成
 
-### Phase 3: SaaS 化（规划中）
-- [ ] 用户系统
-- [ ] 多租户支持
-- [ ] 付费订阅
-- [ ] 数据分析看板
+---
+
+## 成本参考
+
+| 项目 | 成本 |
+|------|------|
+| GPT-4o 图片分析 | ~$0.01 |
+| DALL·E 3 白底图 | ~$0.08 |
+| GPT-4o 脚本生成 | ~$0.02 |
+| 豆包 Seedance 视频 | ~¥0.9 |
+| **合计（Seedance 方案）** | **~¥1.5 / 视频** |
+
+---
 
 ## License
 
