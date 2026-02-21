@@ -10,7 +10,7 @@
 | 项目 | 说明 |
 |------|------|
 | **目标** | 输入产品照片 → 输出TikTok带货短视频 |
-| **当前阶段** | ✅ MVP + Web 界面 + Seedance 集成完成，下一步：后处理模块 |
+| **当前阶段** | ✅ 全部功能开发完成（Phase 1–13），等待客户提供 API Key 进行端到端测试 |
 
 ---
 
@@ -151,6 +151,37 @@
 
 ---
 
+## ✅ Phase 12：设置管理（2026-02-21 完成）
+
+- [x] `src/settings_manager.py` 设置持久化模块
+- [x] `GET /api/settings` 获取全部配置项（敏感值脱敏显示）
+- [x] `GET /api/settings/groups` 分组获取配置（用于表单渲染）
+- [x] `POST /api/settings` 单项更新配置
+- [x] `static/settings.html` 设置页面（Web 界面统一管理 API Key 及系统参数）
+
+---
+
+## ✅ Phase 13：广告系列 / 数据分析 / 优化分析（2026-02-21 完成）
+
+### 13.1 广告系列管理
+- [x] `GET /api/campaigns` 获取广告系列列表（含汇总统计）
+- [x] `POST /api/campaigns` 创建广告系列
+- [x] `static/campaigns.html` 广告系列管理页面
+
+### 13.2 数据分析
+- [x] `GET /api/analytics/overview` 数据概览（总计 + 核心指标）
+- [x] `GET /api/analytics/trends` ROAS 和花费趋势（7 日数据）
+- [x] `GET /api/analytics/campaigns` 活动表现排名
+- [x] `static/analytics.html` 数据分析看板
+
+### 13.3 优化分析
+- [x] `GET /api/optimization/queue` 获取待处理 / 已完成优化任务列表
+- [x] `POST /api/optimization/{opt_id}/approve` 批准优化任务上线
+- [x] `POST /api/optimization/{opt_id}/reject` 拒绝优化任务
+- [x] `static/optimization.html` 优化分析页面
+
+---
+
 ## 📊 工作量汇总
 
 | 阶段 | 内容 | 工时 | 优先级 | 状态 |
@@ -166,7 +197,9 @@
 | Phase 9 | 历史记录 | 4-6h | P1 | ✅ 已完成 |
 | Phase 10 | 竞品分析（AI 版） | 6h | P2 | ✅ 已完成 |
 | Phase 11 | 批量处理 | 8h | P2 | ✅ 已完成 |
-| **总计** | | **~100h** | | **✅ 100% 完成** |
+| Phase 12 | 设置管理 | 4h | P1 | ✅ 已完成 |
+| Phase 13 | 广告系列 / 数据分析 / 优化分析 | 8h | P2 | ✅ 已完成 |
+| **总计** | | **~112h** | | **✅ 100% 完成** |
 
 ---
 
@@ -199,21 +232,40 @@ ai-video-generator/
 ├── requirements.txt          # Python 依赖
 ├── .env.example              # API Key 配置模板
 ├── docs/
-│   ├── PRD.md                # 产品需求文档（v1.2）✅ 已更新
+│   ├── PRD.md                # 产品需求文档（v1）
+│   ├── PRD_v2.md             # 产品需求文档（v2）
 │   ├── QUICKSTART.md         # 快速上手指南
 │   ├── AI短视频制作系统设计.md  # 详细设计文档
+│   ├── AI流程.docx            # 客户原始需求
 │   └── 客户沟通_API_Key申请.md  # 话术文档
 ├── src/
-│   ├── config.py             # 配置管理
-│   ├── image_processor.py    # 图片处理模块 ✅
-│   ├── prompt_generator.py   # Prompt 生成模块 ✅
-│   ├── video_generator.py    # 视频生成（Creatok）✅ 待加 Seedance
-│   └── api_server.py         # FastAPI 后端 ✅
+│   ├── config.py             # 配置管理 ✅
+│   ├── utils.py              # 工具函数（JSON 解析等）✅
+│   ├── image_processor.py    # 图片处理（GPT-4o + DALL·E 3）✅
+│   ├── prompt_generator.py   # 脚本 & Prompt 生成 ✅
+│   ├── video_generator.py    # 视频生成（Seedance / Creatok）✅
+│   ├── post_processor.py     # 后处理（字幕 / BGM）✅
+│   ├── database.py           # SQLite 任务持久化 ✅
+│   ├── competitor_analyzer.py# AI 卖点建议 + 竞品分析 ✅
+│   ├── batch_processor.py    # 批量处理队列 ✅
+│   ├── settings_manager.py   # 设置持久化管理 ✅
+│   └── api_server.py         # FastAPI 后端（22 个接口）✅
 ├── static/
-│   └── index.html            # Web 前端 ✅ 待加服务选择器
-└── output/                   # 视频输出目录
+│   ├── index.html            # 主页（上传 / 生成）✅
+│   ├── history.html          # 历史记录页面 ✅
+│   ├── batch.html            # 批量处理页面 ✅
+│   ├── settings.html         # 设置页面 ✅
+│   ├── campaigns.html        # 广告系列管理页面 ✅
+│   ├── analytics.html        # 数据分析看板 ✅
+│   ├── optimization.html     # 优化分析页面 ✅
+│   └── bgm/                  # 背景音乐目录（mp3/wav/m4a/aac）
+├── data/
+│   ├── jobs.db               # SQLite 任务数据库（自动创建）
+│   └── uploads/              # 临时上传文件
+├── temp/                     # 临时处理文件（自动创建）
+└── output/                   # 视频输出目录（自动创建）
 ```
 
 ---
 
-*最后更新: 2026-02-21（Phase 7 Seedance 集成完成，整体进度 75%）*
+*最后更新: 2026-02-21（Phase 13 完成，全部功能开发完毕，整体进度 100%）*

@@ -17,7 +17,10 @@ AI 驱动的一站式视频生成系统，面向跨境电商卖家。上传产�
 - **批量处理** — CSV 批量导入产品，队列化并行生成多个视频
 - **历史记录** — SQLite 持久化任务，重启后可重新下载视频
 - **设置管理** — Web 界面统一管理 API Key 及系统参数
-- **Web 界面** — 浏览器全流程操作，无需命令行（7 个功能页面）
+- **广告系列管理** — 创建和管理多个广告系列，汇总投放统计数据
+- **数据分析** — ROAS、花费趋势等核心指标可视化看板
+- **优化分析** — AI 自动生成优化建议，支持一键批准或拒绝上线
+- **Web 界面** — 浏览器全流程操作，无需命令行（10 个功能页面）
 
 ---
 
@@ -150,6 +153,7 @@ ai-video-generator/
 ├── data/                       # SQLite 数据库（自动创建）
 ├── docs/
 │   ├── PRD.md                  # 产品需求文档
+│   ├── PRD_v2.md               # 产品需求文档（v2）
 │   └── QUICKSTART.md           # 详细上手指南
 └── output/                     # 视频输出目录（自动创建）
 ```
@@ -169,8 +173,19 @@ ai-video-generator/
 | POST | `/api/analyze-competitor` | 竞品文案分析 |
 | GET | `/api/batch` | 获取批量任务列表 |
 | POST | `/api/batch` | 提交批量生成任务 |
+| GET | `/api/batch/{batch_id}` | 查询批量任务进度 |
+| GET | `/api/batch/{batch_id}/download` | 下载批量视频 ZIP |
 | GET | `/api/settings` | 获取系统设置 |
+| GET | `/api/settings/groups` | 获取分组设置（表单渲染用）|
 | POST | `/api/settings` | 保存系统设置 |
+| GET | `/api/campaigns` | 获取广告系列列表 |
+| POST | `/api/campaigns` | 创建广告系列 |
+| GET | `/api/analytics/overview` | 数据概览（总计 + 核心指标）|
+| GET | `/api/analytics/trends` | ROAS 和花费趋势（7 日数据）|
+| GET | `/api/analytics/campaigns` | 活动表现排名 |
+| GET | `/api/optimization/queue` | 获取优化任务队列 |
+| POST | `/api/optimization/{opt_id}/approve` | 批准优化任务上线 |
+| POST | `/api/optimization/{opt_id}/reject` | 拒绝优化任务 |
 
 ---
 
@@ -208,8 +223,11 @@ ai-video-generator/
 - [x] 历史记录（SQLite 持久化 + 历史页面）
 - [x] AI 卖点建议 + 竞品文案分析
 - [x] 命令行工具
-- [x] 批量处理（CSV 导入 + 队列生成）
+- [x] 批量处理（CSV 导入 + 队列生成 + ZIP 下载）
 - [x] 设置管理（Web 界面配置 API Key）
+- [x] 广告系列管理（创建系列 + 投放统计）
+- [x] 数据分析（ROAS / 花费趋势 / 活动排名）
+- [x] 优化分析（AI 优化建议队列，支持批准/拒绝）
 
 ---
 
