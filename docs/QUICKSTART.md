@@ -1,7 +1,7 @@
-# AI Video Generator - MVP 快速上手指南
+# AI Video Generator - 快速上手指南
 
-**版本**: MVP 1.0
-**更新时间**: 2026-02-20
+**版本**: 1.0 正式版
+**更新时间**: 2026-02-21
 
 ---
 
@@ -10,7 +10,7 @@
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ai-video-generator.git
+git clone https://github.com/hitome0123/ai-video-generator.git
 cd ai-video-generator
 ```
 
@@ -20,11 +20,12 @@ cd ai-video-generator
 pip install -r requirements.txt
 ```
 
-**依赖包**:
-- `openai` - OpenAI API 客户端（GPT-4V, DALL·E 3）
-- `fastapi` - Web 框架（未来用）
-- `Pillow` - 图片处理
-- `httpx` - HTTP 客户端
+**主要依赖**:
+- `openai` - OpenAI API 客户端（GPT-4o、DALL·E 3）
+- `fastapi` / `uvicorn` - Web 框架及服务器
+- `Pillow` / `opencv-python` - 图片处理
+- `httpx` / `requests` - HTTP 客户端
+- `aiofiles` - 异步文件操作
 
 ### 3. 配置 API Key
 
@@ -38,19 +39,54 @@ cp .env.example .env
 # OpenAI API Key（必需）
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Creatok API Key（必需）
-CREATOK_API_KEY=your-creatok-api-key-here
+# 视频生成（二选一，推荐 Seedance）
+ARK_API_KEY=your-ark-api-key-here        # 豆包 Seedance（火山引擎）
+CREATOK_API_KEY=your-creatok-api-key-here  # Creatok（备选）
 
 # 可选配置
 OUTPUT_DIR=./output
 TEMP_DIR=./temp
 ```
 
+**API Key 获取地址**:
+
+| Key | 申请地址 |
+|-----|---------|
+| OPENAI_API_KEY | https://platform.openai.com/api-keys |
+| ARK_API_KEY | https://console.volcengine.com → 火山方舟 → API Key 管理 |
+| CREATOK_API_KEY | https://www.creatok.ai |
+
 ---
 
 ## 🎯 使用方法
 
-### 方式 1: 命令行工具（推荐）
+### 方式 1: Web 界面（推荐）
+
+```bash
+python run.py
+```
+
+浏览器打开 **http://localhost:8000**，按页面引导操作：
+
+1. 上传产品图片（拖拽或点击）
+2. 填写产品名称和卖点
+3. 选择视频服务（Seedance 推荐 / Creatok 备选）
+4. 可选开启字幕烧录 / BGM 混音
+5. 点击「生成视频」，等待完成后一键下载
+
+**Web 界面功能页面**:
+
+| 页面 | 地址 | 说明 |
+|------|------|------|
+| 主页 | / | 上传图片 + 生成视频 |
+| 历史记录 | /history.html | 查看 / 下载历史任务 |
+| 批量处理 | /batch.html | CSV 导入批量生成 |
+| 设置 | /settings.html | 管理 API Key 及参数 |
+| 广告系列 | /campaigns.html | 创建和管理广告系列 |
+| 数据分析 | /analytics.html | ROAS、花费趋势看板 |
+| 优化分析 | /optimization.html | AI 优化建议队列 |
+
+### 方式 2: 命令行工具
 
 ```bash
 python main.py <图片路径> <产品名称> <卖点1> <卖点2> ...
@@ -61,143 +97,51 @@ python main.py <图片路径> <产品名称> <卖点1> <卖点2> ...
 ```bash
 # 智能手表示例
 python main.py \
-    examples/smartwatch.jpg \
+    smartwatch.jpg \
     "智能手表V8 Pro" \
     "30天超长续航" \
     "50米防水" \
     "24小时心率监测" \
     "100+运动模式"
-
-# 充电器示例
-python main.py \
-    examples/charger.jpg \
-    "20W快充充电器" \
-    "PD快充协议" \
-    "双USB接口" \
-    "折叠插头" \
-    "全球通用"
-```
-
-### 方式 2: Python 脚本
-
-创建 `my_video.py`:
-
-```python
-from main import generate_video_from_image
-
-result = generate_video_from_image(
-    image_path="my_product.jpg",
-    product_name="我的产品",
-    selling_points=[
-        "卖点1",
-        "卖点2",
-        "卖点3"
-    ],
-    duration=15  # 视频时长（秒）
-)
-
-print(f"视频已生成: {result['video_result']['output_path']}")
-```
-
-运行:
-
-```bash
-python my_video.py
 ```
 
 ---
 
 ## 📂 输出结构
 
-运行后会在 `output/` 目录生成以下文件：
-
 ```
-output/
-└── 产品名称/
-    ├── processed/              # 图片处理结果
-    │   └── white_bg.png        # DALL·E 生成的白底图
-    ├── script.json             # 视频脚本（JSON 格式）
-    ├── video_prompt.txt        # 视频生成 Prompt
-    └── 产品名称.mp4            # 最终视频
+output/<job_id>/
+├── processed/
+│   └── white_bg.png        # DALL·E 3 生成的白底图（1024×1792）
+├── script.json             # 视频脚本（hook / scenes / cta）
+├── video_prompt.txt        # 优化后的视频生成 Prompt
+└── <产品名称>.mp4          # 成品视频（含字幕 / BGM，9:16 竖版）
 ```
 
-**文件说明**:
-
-1. **white_bg.png** - AI 扩图后的白底产品图（1024x1792）
-2. **script.json** - 包含 hook、分镜、CTA 的完整脚本
-3. **video_prompt.txt** - 优化后的视频生成 Prompt
-4. **产品名称.mp4** - 生成的 TikTok 视频（9:16 竖版）
-
----
-
-## 🔧 模块化使用
-
-### 1. 仅处理图片
-
-```python
-from src.image_processor import ImageProcessor
-
-processor = ImageProcessor()
-result = processor.process_image("product.jpg")
-
-print(f"白底图: {result['output_path']}")
-print(f"产品分析: {result['analysis']}")
-```
-
-### 2. 仅生成 Prompt
-
-```python
-from src.prompt_generator import PromptGenerator
-
-generator = PromptGenerator()
-result = generator.generate_complete_prompt(
-    product_name="智能手表",
-    product_description="A modern smartwatch with AMOLED display",
-    selling_points=["30天续航", "防水"],
-    duration=15
-)
-
-print(f"脚本: {result['script']}")
-print(f"Prompt: {result['video_prompt']}")
-```
-
-### 3. 仅生成视频
-
-```python
-from src.video_generator import VideoGenerator
-
-generator = VideoGenerator()
-result = generator.generate_video(
-    prompt="Your video prompt here",
-    output_path="output/video.mp4",
-    duration=15
-)
-
-print(f"视频: {result['output_path']}")
-```
+历史任务保存在 `data/jobs.db`，重启服务后可在历史记录页面重新下载。
 
 ---
 
 ## 💰 成本估算
 
-**单个视频成本（15秒）**:
+### Seedance 方案（推荐）
 
-| 步骤 | API | 价格 |
+| 步骤 | API | 费用 |
 |------|-----|------|
-| 图片分析 | GPT-4V | ~$0.01 |
-| 白底图生成 | DALL·E 3 (HD) | $0.08 |
-| 脚本生成 | GPT-4 | ~$0.01 |
-| Prompt 优化 | GPT-4 | ~$0.01 |
-| 视频生成 | Creatok | ~$0.20 |
-| **总计** | | **~$0.31** |
+| 图片分析 | GPT-4o Vision | ~$0.01 |
+| 白底图生成 | DALL·E 3 | $0.08 |
+| 脚本生成 | GPT-4o | ~$0.01 |
+| Prompt 优化 | GPT-4o | ~$0.01 |
+| 视频生成（5 秒）| 豆包 Seedance | ~¥0.9 |
+| **合计** | | **~¥1.5 / 视频** |
 
-**批量生产成本**:
+### Creatok 方案（备选）
 
-| 数量 | 成本 |
-|------|------|
-| 10 个视频 | $3.1 |
-| 100 个视频 | $31 |
-| 1000 个视频 | $310 |
+| 步骤 | API | 费用 |
+|------|-----|------|
+| 图片分析 + 脚本 | GPT-4o | ~$0.11 |
+| 视频生成（15 秒）| Creatok | ~¥2.2 |
+| **合计** | | **~¥3 / 视频** |
 
 ---
 
@@ -205,10 +149,9 @@ print(f"视频: {result['output_path']}")
 
 ### Q1: DALL·E 3 生成的图片不理想？
 
-**答**: 可以调整 `image_processor.py` 中的 Prompt 模板：
+调整 `src/image_processor.py` 中 `expand_image()` 函数里的 Prompt 模板：
 
 ```python
-# 在 expand_image() 函数中修改
 prompt = f"""A professional product photo on a pure white background:
 {product_description}
 
@@ -219,42 +162,32 @@ Additional requirements:
 
 ### Q2: 视频生成失败？
 
-**答**: 检查以下几点：
-1. Creatok API Key 是否正确
+检查以下几点：
+1. `.env` 中 API Key 是否填写正确（也可在 Web 设置页面修改）
 2. API 配额是否用完
 3. Prompt 是否包含敏感内容
+4. 使用 Seedance 时确认火山引擎账户余额充足
 
-### Q3: 如何自定义视频时长？
+### Q3: 如何选择视频时长？
 
-**答**: 在命令行或 Python 脚本中指定 `duration` 参数：
-
-```bash
-# 不支持命令行参数，需要修改代码
-# 在 main.py 中修改:
-generate_video_from_image(..., duration=30)
-```
+在 Web 界面的服务选择卡片中切换：
+- **豆包 Seedance** — 5 秒，~¥0.9
+- **Creatok** — 15 秒，~¥2.2
 
 ### Q4: 如何批量处理多个产品？
 
-**答**: 创建一个脚本循环处理：
+在 Web 界面打开 **批量处理**（/batch.html）：
+1. 下载 CSV 模板，填写产品名称和卖点
+2. 上传 CSV 文件（最多 20 个产品）
+3. 点击「开始批量生成」，完成后一键下载 ZIP
 
-```python
-products = [
-    {"image": "p1.jpg", "name": "产品1", "points": ["卖点1", "卖点2"]},
-    {"image": "p2.jpg", "name": "产品2", "points": ["卖点1", "卖点2"]},
-]
+### Q5: 如何添加背景音乐？
 
-for p in products:
-    generate_video_from_image(
-        image_path=p["image"],
-        product_name=p["name"],
-        selling_points=p["points"]
-    )
-```
+将 mp3 / wav / m4a / aac 文件放入 `static/bgm/` 目录，生成时在 Web 界面勾选「混入 BGM」即可。
 
 ---
 
-## 🐛 调试模式
+## 🐛 调试
 
 ### 开启详细日志
 
@@ -267,7 +200,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 ```bash
 # 测试图片处理
-python -m src.image_processor smartwatch.jpg
+python -m src.image_processor
 
 # 测试 Prompt 生成
 python -m src.prompt_generator
@@ -275,23 +208,14 @@ python -m src.prompt_generator
 
 ---
 
-## 🔗 下一步
-
-1. **测试生成的视频**: 检查视频质量、卖点展示是否清晰
-2. **调整 Prompt**: 根据生成效果优化提示词模板
-3. **批量处理**: 准备多个产品图片批量生成
-4. **集成上传**: 配合 `tiktok-video-upload` 自动发布
-
----
-
 ## 📞 技术支持
 
 遇到问题？
 
-- 查看 [CLAUDE.md](../CLAUDE.md) 了解项目架构
-- 查看 [PRD.md](PRD.md) 了解完整功能规划
-- 提交 Issue: https://github.com/YOUR_USERNAME/ai-video-generator/issues
+- 查看 [CLAUDE.md](../CLAUDE.md) 了解项目架构和开发记录
+- 查看 [PRD_v2.md](PRD_v2.md) 了解完整功能规划
+- 提交 Issue: https://github.com/hitome0123/ai-video-generator/issues
 
 ---
 
-**Happy Video Creating! 🎬**
+**Happy Video Creating!**
