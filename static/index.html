@@ -14,944 +14,909 @@
       min-height: 100vh;
     }
 
+    /* ── Header ── */
     header {
       background: #000;
       color: #fff;
-      padding: 20px 24px;
+      padding: 18px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    header h1 { font-size: 20px; font-weight: 600; }
-    header span { font-size: 13px; color: #aaa; display: block; margin-top: 2px; }
-    header a.history-link {
-      font-size: 13px;
-      color: #aaa;
-      text-decoration: none;
-      padding: 6px 12px;
-      border: 1px solid #444;
-      border-radius: 8px;
-      flex-shrink: 0;
+    .header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-left p  { font-size: 12px; color: #888; margin-top: 2px; }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-link {
+      font-size: 13px; color: #aaa; text-decoration: none;
+      padding: 6px 12px; border: 1px solid #444; border-radius: 8px;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
     }
-    header a.history-link:hover { color: #fff; border-color: #888; }
+    .nav-link:hover { color: #fff; border-color: #888; }
 
-    .container {
-      max-width: 680px;
-      margin: 40px auto;
-      padding: 0 20px 60px;
-    }
+    .container { max-width: 640px; margin: 32px auto; padding: 0 20px 60px; }
 
-    /* ── 卡片 ── */
+    /* ── Card ── */
     .card {
       background: #fff;
-      border-radius: 16px;
-      padding: 28px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 10px rgba(0,0,0,0.06);
     }
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .card-label {
+      font-size: 13px; font-weight: 700; color: #999;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
     }
-    .card-title .num {
-      width: 24px; height: 24px;
+    .step-dot {
+      width: 22px; height: 22px;
       background: #000; color: #fff;
-      border-radius: 50%;
+      border-radius: 50%; font-size: 11px; font-weight: 800;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700;
       flex-shrink: 0;
     }
 
-    /* ── 图片上传区 ── */
-    .upload-area {
+    /* ── Image Upload ── */
+    .upload-zone {
       border: 2px dashed #ddd;
-      border-radius: 12px;
-      padding: 40px 20px;
+      border-radius: 14px;
+      padding: 36px 20px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
       position: relative;
+      transition: border-color 0.2s, background 0.2s;
     }
-    .upload-area:hover, .upload-area.drag-over {
-      border-color: #000;
-      background: #fafafa;
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #000; background: #fafafa;
     }
-    .upload-area input[type=file] {
+    .upload-zone input[type=file] {
       position: absolute; inset: 0; opacity: 0; cursor: pointer;
     }
-    .upload-icon { font-size: 48px; margin-bottom: 12px; }
-    .upload-text { font-size: 15px; color: #333; margin-bottom: 4px; }
-    .upload-hint { font-size: 13px; color: #999; }
+    .upload-icon { font-size: 40px; margin-bottom: 10px; }
+    .upload-main { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 4px; }
+    .upload-sub  { font-size: 13px; color: #aaa; }
 
-    .preview-wrap {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
+    .preview-zone {
+      display: none; flex-direction: column; align-items: center; gap: 12px;
     }
-    .preview-wrap img {
-      max-height: 240px;
-      max-width: 100%;
-      border-radius: 8px;
-      object-fit: contain;
+    .preview-zone img {
+      max-height: 220px; max-width: 100%;
+      border-radius: 10px; object-fit: contain;
     }
-    .preview-wrap .change-btn {
+    .btn-change {
       font-size: 13px; color: #666;
       background: none; border: 1px solid #ddd;
-      border-radius: 6px; padding: 4px 12px;
-      cursor: pointer;
+      border-radius: 8px; padding: 5px 14px; cursor: pointer;
     }
-    .preview-wrap .change-btn:hover { border-color: #999; }
+    .btn-change:hover { border-color: #999; }
 
-    /* ── 表单 ── */
-    label {
-      display: block;
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 6px;
+    /* ── Form fields ── */
+    .field-label {
+      font-size: 13px; color: #555; font-weight: 500;
+      margin-bottom: 6px; display: block;
     }
-    input[type=text], textarea {
-      width: 100%;
-      padding: 12px 14px;
+    input[type=text] {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 15px; font-family: inherit; color: #1d1d1f;
+      outline: none; transition: border-color 0.2s;
+    }
+    input[type=text]:focus { border-color: #000; }
+
+    /* ── Chip / Tag 卖点输入 ── */
+    .chip-wrap {
       border: 1.5px solid #e0e0e0;
       border-radius: 10px;
-      font-size: 15px;
-      font-family: inherit;
-      color: #1d1d1f;
-      outline: none;
+      padding: 8px 10px;
+      min-height: 76px;
+      cursor: text;
       transition: border-color 0.2s;
-    }
-    input[type=text]:focus, textarea:focus { border-color: #000; }
-    textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
-
-    /* ── AI 建议按钮 ── */
-    .ai-btn {
-      margin-top: 8px;
-      padding: 8px 14px;
-      background: none;
-      border: 1.5px solid #ddd;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #555;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .ai-btn:hover { border-color: #000; color: #000; }
-    .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* ── AI 建议标签 ── */
-    .suggestion-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 6px;
+      align-items: flex-start;
     }
-    .suggestion-tag {
-      padding: 5px 12px;
-      background: #f0f0f0;
-      border-radius: 20px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.2s;
-      border: 1.5px solid transparent;
+    .chip-wrap:focus-within { border-color: #000; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 8px 5px 11px;
+      background: #1d1d1f; color: #fff;
+      border-radius: 20px; font-size: 13px;
+      animation: chipIn 0.15s ease;
     }
-    .suggestion-tag:hover { background: #e0e0e0; border-color: #bbb; }
-    .hint-text { font-size: 12px; color: #aaa; margin-top: 6px; }
+    @keyframes chipIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .chip-del {
+      cursor: pointer; color: rgba(255,255,255,0.6);
+      font-size: 15px; line-height: 1; padding: 0 1px;
+      transition: color 0.15s;
+    }
+    .chip-del:hover { color: #fff; }
+    #chip-field {
+      border: none; outline: none;
+      font-size: 14px; font-family: inherit;
+      flex: 1; min-width: 140px; padding: 5px 4px;
+      background: transparent;
+    }
+    .chip-placeholder {
+      font-size: 14px; color: #bbb; padding: 5px 4px;
+      pointer-events: none;
+    }
 
-    /* ── 竞品分析 ── */
-    .collapsible-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      padding: 14px 0;
-      border-top: 1px solid #f0f0f0;
-      margin-top: 16px;
+    .chip-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 6px;
     }
-    .collapsible-header span { font-size: 13px; color: #666; }
-    .collapsible-header .arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; }
-    .collapsible-header.open .arrow { transform: rotate(180deg); }
-    .collapsible-body { display: none; padding-top: 12px; }
-    .collapsible-body.open { display: block; }
+    .chip-count { font-size: 12px; color: #bbb; }
+    .chip-count.warn { color: #ff9500; }
 
-    .competitor-result {
-      background: #f5f5f7;
-      border-radius: 10px;
-      padding: 14px;
-      margin-top: 10px;
-      font-size: 13px;
-      line-height: 1.7;
+    /* ── AI 建议 ── */
+    .ai-section { margin-top: 12px; }
+    .ai-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .ai-tag {
+      font-size: 12px; color: #888; background: none;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .ai-spin {
+      width: 14px; height: 14px;
+      border: 2px solid #ddd; border-top-color: #555;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
       display: none;
     }
-    .competitor-result.show { display: block; }
-    .cr-section { margin-bottom: 10px; }
-    .cr-section strong { color: #333; display: block; margin-bottom: 4px; }
-    .cr-tag {
-      display: inline-block;
-      padding: 3px 10px;
-      background: #e8f5e9;
-      border-radius: 12px;
-      margin: 2px 3px;
-      cursor: pointer;
-    }
-    .cr-tag:hover { background: #c8e6c9; }
-
-    /* ── 生成按钮 ── */
-    .generate-btn {
-      width: 100%;
-      padding: 16px;
-      background: #000;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      margin-top: 8px;
-    }
-    .generate-btn:hover { opacity: 0.85; }
-    .generate-btn:active { transform: scale(0.99); }
-    .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* ── 进度卡片 ── */
-    #progress-section { display: none; }
-
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      margin-bottom: 24px;
-    }
-    .step-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid #f0f0f0;
-      position: relative;
-    }
-    .step-item:last-child { border-bottom: none; }
-
-    .step-icon {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .step-icon.pending   { background: #f0f0f0; color: #aaa; }
-    .step-icon.active    { background: #000; color: #fff; animation: pulse 1.2s infinite; }
-    .step-icon.done      { background: #34c759; color: #fff; }
-    .step-icon.failed    { background: #ff3b30; color: #fff; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-
-    .step-content { flex: 1; }
-    .step-label { font-size: 15px; font-weight: 500; color: #1d1d1f; }
-    .step-desc  { font-size: 13px; color: #999; margin-top: 2px; }
-    .step-desc.active { color: #555; }
-
-    /* ── 结果区 ── */
-    #result-section { display: none; }
-
-    .result-info {
-      background: #f5f5f7;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-    .result-info p { font-size: 13px; color: #666; line-height: 1.7; }
-    .result-info strong { color: #333; }
-
-    .download-btn {
-      width: 100%;
-      padding: 16px;
-      background: #34c759;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ai-btn-link {
+      font-size: 13px; color: #007aff; background: none; border: none;
+      cursor: pointer; padding: 0; text-decoration: none;
       transition: opacity 0.2s;
     }
-    .download-btn:hover { opacity: 0.85; }
+    .ai-btn-link:hover { opacity: 0.7; }
+    .ai-btn-link:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .restart-btn {
-      width: 100%;
-      padding: 12px;
-      background: none;
-      color: #555;
-      border: 1.5px solid #ddd;
-      border-radius: 12px;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: border-color 0.2s;
+    .suggest-chips {
+      display: flex; flex-wrap: wrap; gap: 6px;
     }
-    .restart-btn:hover { border-color: #999; }
+    .sug-chip {
+      padding: 5px 12px;
+      background: #f0f0f0; border-radius: 20px;
+      font-size: 13px; cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .sug-chip:hover { background: #e0e0e0; border-color: #ccc; }
+    .sug-chip.used  { opacity: 0.4; pointer-events: none; }
 
-    /* ── 错误 ── */
-    .error-box {
-      background: #fff2f2;
-      border: 1px solid #ffcccc;
-      border-radius: 10px;
-      padding: 14px;
-      color: #c00;
-      font-size: 14px;
-      line-height: 1.5;
-      display: none;
+    /* ── 高级选项（竞品分析） ── */
+    .adv-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; padding: 12px 0;
+      border-top: 1px solid #f0f0f0; margin-top: 14px;
     }
+    .adv-toggle span { font-size: 13px; color: #aaa; }
+    .adv-arrow { font-size: 11px; color: #bbb; transition: transform 0.2s; }
+    .adv-toggle.open .adv-arrow { transform: rotate(180deg); }
+    .adv-body { display: none; padding-top: 12px; }
+    .adv-body.open { display: block; }
+    .adv-body textarea {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 14px; font-family: inherit;
+      outline: none; resize: vertical; min-height: 72px;
+      transition: border-color 0.2s; line-height: 1.5;
+    }
+    .adv-body textarea:focus { border-color: #000; }
+    .comp-result {
+      display: none; margin-top: 10px;
+      background: #f5f5f7; border-radius: 10px; padding: 14px;
+      font-size: 13px; line-height: 1.7;
+    }
+    .comp-result.show { display: block; }
+    .comp-section { margin-bottom: 10px; }
+    .comp-section strong { color: #333; display: block; margin-bottom: 4px; font-size: 12px; }
+    .cr-chip {
+      display: inline-block; padding: 3px 10px;
+      background: #e8f5e9; border-radius: 12px;
+      margin: 2px 3px; cursor: pointer; font-size: 12px;
+    }
+    .cr-chip:hover { background: #c8e6c9; }
 
-    /* ── 服务选择器 ── */
-    .service-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+    /* ── 设置区（服务 + 后处理 合并） ── */
+    .svc-options {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-bottom: 16px;
     }
-    .service-option {
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      padding: 14px;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+    @media (max-width: 440px) { .svc-options { grid-template-columns: 1fr; } }
+
+    .svc-card {
+      border: 2px solid #e8e8e8; border-radius: 12px; padding: 14px;
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
       position: relative;
     }
-    .service-option input[type=radio] {
-      position: absolute;
-      opacity: 0;
-      width: 0; height: 0;
+    .svc-card input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .svc-card.selected { border-color: #000; background: #fafafa; }
+    .svc-card:hover { border-color: #aaa; }
+    .svc-card-name {
+      font-size: 14px; font-weight: 700; margin-bottom: 3px;
+      display: flex; align-items: center; gap: 6px;
     }
-    .service-option.selected {
-      border-color: #000;
-      background: #fafafa;
+    .rec-badge {
+      font-size: 10px; background: #000; color: #fff;
+      padding: 2px 6px; border-radius: 4px;
     }
-    .service-option:hover { border-color: #aaa; }
-    .service-name {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .service-badge {
-      font-size: 10px;
-      background: #000;
-      color: #fff;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 500;
-    }
-    .service-desc {
-      font-size: 12px;
-      color: #888;
-      line-height: 1.5;
-    }
-    .service-cost {
-      font-size: 12px;
-      color: #34c759;
-      font-weight: 500;
-      margin-top: 4px;
-    }
+    .svc-card-desc { font-size: 12px; color: #999; line-height: 1.4; }
+    .svc-card-cost { font-size: 12px; color: #34c759; font-weight: 600; margin-top: 5px; }
 
-    /* ── 后处理开关 ── */
+    .pp-section { border-top: 1px solid #f0f0f0; padding-top: 14px; }
+    .pp-label { font-size: 12px; font-weight: 700; color: #999; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; }
     .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid #f5f5f5;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 0; border-bottom: 1px solid #f7f7f7;
     }
     .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .toggle-label { font-size: 14px; color: #333; }
-    .toggle-hint  { font-size: 12px; color: #aaa; margin-top: 2px; }
-
-    .toggle {
-      position: relative;
-      width: 44px; height: 26px;
-      flex-shrink: 0;
-    }
+    .toggle-name { font-size: 14px; color: #333; }
+    .toggle-hint { font-size: 11px; color: #bbb; margin-top: 1px; }
+    .toggle { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .slider {
-      position: absolute;
-      inset: 0;
-      background: #ccc;
-      border-radius: 26px;
-      cursor: pointer;
-      transition: background 0.2s;
+      position: absolute; inset: 0; background: #ddd;
+      border-radius: 24px; cursor: pointer; transition: background 0.2s;
     }
     .slider:before {
-      content: "";
-      position: absolute;
-      width: 20px; height: 20px;
-      left: 3px; bottom: 3px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform 0.2s;
+      content: ""; position: absolute;
+      width: 18px; height: 18px; left: 3px; bottom: 3px;
+      background: #fff; border-radius: 50%; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     .toggle input:checked + .slider { background: #000; }
     .toggle input:checked + .slider:before { transform: translateX(18px); }
 
-    /* ── 成本提示 ── */
-    .cost-tip {
-      text-align: center;
-      font-size: 12px;
-      color: #bbb;
-      margin-top: 8px;
+    /* ── 生成按钮 ── */
+    .gen-btn {
+      width: 100%; padding: 17px;
+      background: #000; color: #fff; border: none;
+      border-radius: 14px; font-size: 17px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: -0.2px;
     }
+    .gen-btn:hover { opacity: 0.85; }
+    .gen-btn:active { transform: scale(0.99); }
+    .gen-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .cost-line {
+      text-align: center; font-size: 12px; color: #bbb; margin-top: 8px;
+    }
+
+    /* ── 进度 ── */
+    #prog-section { display: none; }
+
+    .prog-card-title {
+      font-size: 16px; font-weight: 700; margin-bottom: 4px;
+    }
+    .prog-card-sub {
+      font-size: 13px; color: #aaa; margin-bottom: 22px;
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid #f3f3f3;
+    }
+    .step:last-child { border-bottom: none; padding-bottom: 0; }
+    .step-icon {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+    .step-icon.wait   { background: #f3f3f3; color: #ccc; }
+    .step-icon.active { background: #000; color: #fff; animation: pulse 1.3s ease-in-out infinite; }
+    .step-icon.done   { background: #34c759; color: #fff; }
+    .step-icon.error  { background: #ff3b30; color: #fff; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+    .step-body { flex: 1; }
+    .step-name { font-size: 15px; font-weight: 600; }
+    .step-desc { font-size: 13px; color: #aaa; margin-top: 2px; }
+    .step-desc.live { color: #555; }
+
+    .err-box {
+      margin-top: 16px; padding: 14px;
+      background: #fff2f2; border: 1px solid #ffd0d0;
+      border-radius: 10px; font-size: 14px; color: #c00;
+      display: none;
+    }
+
+    /* ── 完成 ── */
+    #done-section { display: none; }
+
+    .done-banner {
+      font-size: 17px; font-weight: 700; color: #34c759;
+      margin-bottom: 16px;
+    }
+    .done-info {
+      background: #f5f5f7; border-radius: 12px; padding: 16px;
+      font-size: 13px; color: #666; line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .done-info strong { color: #333; }
+    .btn-dl {
+      width: 100%; padding: 17px;
+      background: #34c759; color: #fff; border: none;
+      border-radius: 14px; font-size: 17px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s;
+      margin-bottom: 10px;
+    }
+    .btn-dl:hover { opacity: 0.85; }
+    .btn-again {
+      width: 100%; padding: 12px;
+      background: none; border: 1.5px solid #ddd; border-radius: 12px;
+      font-size: 14px; color: #555; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn-again:hover { border-color: #aaa; }
+    .done-note { font-size: 12px; color: #bbb; text-align: center; margin-top: 10px; }
   </style>
 </head>
 <body>
 
 <header>
-  <div>
+  <div class="header-left">
     <h1>AI 短视频生成器</h1>
-    <span>输入产品照片，自动生成 TikTok 带货视频</span>
+    <p>上传产品图片，自动生成 TikTok 带货视频</p>
   </div>
-  <a class="history-link" href="/history.html">历史记录</a>
+  <div class="nav-links">
+    <a class="nav-link" href="/batch.html">批量生成</a>
+    <a class="nav-link" href="/history.html">历史记录</a>
+  </div>
 </header>
 
 <div class="container">
 
-  <!-- ── 上传表单 ── -->
+  <!-- ══ 表单 ══ -->
   <div id="form-section">
 
-    <!-- 1. 上传图片 -->
+    <!-- 卡片 1：上传图片 -->
     <div class="card">
-      <div class="card-title">
-        <span class="num">1</span> 上传产品图片
-      </div>
+      <div class="card-label"><span class="step-dot">1</span> 上传产品图片</div>
 
-      <div class="upload-area" id="upload-area">
-        <input type="file" id="image-input" accept="image/*">
-        <div id="upload-placeholder">
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="img-input" accept="image/*">
+        <div id="upload-ph">
           <div class="upload-icon">📷</div>
-          <div class="upload-text">点击上传 / 拖拽图片到此处</div>
-          <div class="upload-hint">支持 JPG、PNG，建议使用白底或清晰背景</div>
+          <div class="upload-main">点击上传 / 拖拽图片到这里</div>
+          <div class="upload-sub">支持 JPG、PNG，建议白底或清晰背景</div>
         </div>
-        <div class="preview-wrap" id="preview-wrap">
-          <img id="image-preview" src="" alt="预览">
-          <button class="change-btn" onclick="resetImage(event)">重新选择图片</button>
+        <div class="preview-zone" id="preview-zone">
+          <img id="img-preview" src="" alt="预览">
+          <button class="btn-change" onclick="resetImg(event)">重新选择图片</button>
         </div>
       </div>
     </div>
 
-    <!-- 2. 产品信息 -->
+    <!-- 卡片 2：产品信息 -->
     <div class="card">
-      <div class="card-title">
-        <span class="num">2</span> 填写产品信息
-      </div>
+      <div class="card-label"><span class="step-dot">2</span> 填写产品信息</div>
 
-      <label>产品名称</label>
-      <input type="text" id="product-name" placeholder="例如：智能手表 V8 Pro">
+      <label class="field-label">产品名称</label>
+      <input type="text" id="prod-name" placeholder="例如：智能手表 V8 Pro">
 
       <div style="height:16px"></div>
 
-      <label>
-        核心卖点
-        <span style="font-weight:400;color:#bbb">（每行写一个，至少填写 1 个）</span>
-      </label>
-      <textarea id="selling-points"
-        placeholder="30天超长续航&#10;50米防水&#10;24小时心率监测&#10;100+ 运动模式"></textarea>
-
-      <button class="ai-btn" id="suggest-btn" onclick="suggestSellingPoints()">
-        <span>✨</span> AI 补充卖点建议
-      </button>
-
-      <div class="suggestion-tags" id="suggestion-tags"></div>
-      <div class="hint-text" id="suggestion-hint" style="display:none">
-        点击标签可将其追加到卖点列表
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <label class="field-label" style="margin:0">核心卖点</label>
+        <span style="font-size:12px;color:#bbb">输入后按回车 / Tab 添加标签</span>
       </div>
 
-      <!-- 竞品文案分析（折叠） -->
-      <div class="collapsible-header" id="comp-header" onclick="toggleCompetitor()">
-        <span>📊 分析竞品文案，提取可借鉴卖点</span>
-        <span class="arrow" id="comp-arrow">▼</span>
+      <!-- Chip 输入区 -->
+      <div class="chip-wrap" id="chip-wrap" onclick="document.getElementById('chip-field').focus()">
+        <input type="text" id="chip-field" placeholder="输入卖点，按回车添加…">
       </div>
-      <div class="collapsible-body" id="comp-body">
-        <label>粘贴竞品视频标题 / 描述</label>
-        <textarea id="competitor-text" style="min-height:80px"
-          placeholder="粘贴 TikTok 竞品视频的标题、文案或评论..."></textarea>
-        <button class="ai-btn" id="analyze-btn" onclick="analyzeCompetitor()" style="margin-top:8px">
-          <span>🔍</span> 分析
+      <div class="chip-meta">
+        <span class="chip-count" id="chip-count">0 / 10 个卖点</span>
+      </div>
+
+      <!-- AI 建议 -->
+      <div class="ai-section">
+        <div class="ai-row">
+          <div class="ai-spin" id="ai-spin"></div>
+          <span class="ai-tag">✨ AI 建议：</span>
+          <button class="ai-btn-link" id="ai-btn" onclick="triggerAI()" disabled>
+            点击获取卖点建议
+          </button>
+        </div>
+        <div class="suggest-chips" id="sug-chips"></div>
+      </div>
+
+      <!-- 高级：竞品文案分析 -->
+      <div class="adv-toggle" id="adv-toggle" onclick="toggleAdv()">
+        <span>📊 分析竞品文案，借鉴爆款思路</span>
+        <span class="adv-arrow" id="adv-arrow">▼</span>
+      </div>
+      <div class="adv-body" id="adv-body">
+        <textarea id="comp-text" placeholder="粘贴竞品 TikTok 视频的标题、描述或评论文案…"></textarea>
+        <button class="ai-btn-link" id="comp-btn" onclick="analyzeComp()" style="margin-top:8px; display:inline-block">
+          🔍 开始分析
         </button>
-
-        <div class="competitor-result" id="comp-result">
-          <div class="cr-section">
-            <strong>核心卖点</strong>
-            <div id="comp-points"></div>
+        <div class="comp-result" id="comp-result">
+          <div class="comp-section">
+            <strong>CORE SELLING POINTS</strong>
+            <div id="comp-pts"></div>
           </div>
-          <div class="cr-section">
-            <strong>开头钩子</strong>
+          <div class="comp-section">
+            <strong>HOOK 开头建议</strong>
             <div id="comp-hooks"></div>
           </div>
-          <div class="cr-section" id="comp-summary-wrap">
-            <strong>策略摘要</strong>
-            <div id="comp-summary"></div>
-          </div>
+          <div id="comp-summary" style="color:#666;font-size:12px;margin-top:4px"></div>
         </div>
       </div>
     </div>
 
-    <!-- 3. 选择视频服务 -->
+    <!-- 卡片 3：设置（服务 + 后处理） -->
     <div class="card">
-      <div class="card-title">
-        <span class="num">3</span> 选择视频生成服务
+      <div class="card-label"><span class="step-dot">3</span> 生成设置</div>
+
+      <div class="svc-options">
+        <label class="svc-card selected" id="svc-seed" onclick="selectSvc('seedance')">
+          <input type="radio" name="svc" value="seedance" checked>
+          <div class="svc-card-name">豆包 Seedance <span class="rec-badge">推荐</span></div>
+          <div class="svc-card-desc">字节跳动官方 · 国内直连 · 图生视频</div>
+          <div class="svc-card-cost">约 ¥0.9 / 次</div>
+        </label>
+        <label class="svc-card" id="svc-crea" onclick="selectSvc('creatok')">
+          <input type="radio" name="svc" value="creatok">
+          <div class="svc-card-name">Creatok</div>
+          <div class="svc-card-desc">国际服务 · 15 秒视频</div>
+          <div class="svc-card-cost">约 ¥2.2 / 次</div>
+        </label>
       </div>
-      <div class="service-options">
-        <label class="service-option selected" id="opt-seedance" onclick="selectService('seedance')">
-          <input type="radio" name="video_service" value="seedance" checked>
-          <div class="service-name">
-            豆包 Seedance
-            <span class="service-badge">推荐</span>
+
+      <div class="pp-section">
+        <div class="pp-label">后处理（可选）</div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-name">自动添加字幕</div>
+            <div class="toggle-hint">从脚本烧录字幕（需安装 FFmpeg）</div>
           </div>
-          <div class="service-desc">字节跳动官方模型<br>国内直连 · 图生视频</div>
-          <div class="service-cost">约 ¥0.9 / 次</div>
-        </label>
-        <label class="service-option" id="opt-creatok" onclick="selectService('creatok')">
-          <input type="radio" name="video_service" value="creatok">
-          <div class="service-name">Creatok</div>
-          <div class="service-desc">国际服务<br>15 秒视频</div>
-          <div class="service-cost">约 ¥2.2 / 次</div>
-        </label>
+          <label class="toggle">
+            <input type="checkbox" id="tog-sub">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-name">混入背景音乐 BGM</div>
+            <div class="toggle-hint">需在 static/bgm/ 放置 mp3 文件</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="tog-bgm">
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
-    <!-- 4. 后处理选项 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="num">4</span> 后处理选项
-      </div>
-
-      <div class="toggle-row">
-        <div>
-          <div class="toggle-label">自动添加字幕</div>
-          <div class="toggle-hint">从脚本提取文案，用 FFmpeg 烧录到视频（需安装 FFmpeg）</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-subtitle">
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-row">
-        <div>
-          <div class="toggle-label">混入背景音乐（BGM）</div>
-          <div class="toggle-hint">从 static/bgm/ 目录读取音频（需预先放置 mp3 文件）</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-bgm">
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <!-- 生成按钮 -->
-    <button class="generate-btn" id="generate-btn" onclick="startGeneration()">
+    <button class="gen-btn" id="gen-btn" onclick="startGen()">
       开始生成视频
     </button>
-    <div class="cost-tip" id="cost-tip">每次生成约花费 ¥0.9（豆包 Seedance）</div>
+    <div class="cost-line" id="cost-line">每次约花费 ¥0.9（豆包 Seedance）</div>
 
   </div>
 
-  <!-- ── 进度展示 ── -->
-  <div id="progress-section">
+  <!-- ══ 进度 ══ -->
+  <div id="prog-section">
     <div class="card">
-      <div class="card-title" style="margin-bottom:4px">
-        ⏳ 正在生成中，请勿关闭页面...
-      </div>
-      <p style="font-size:13px;color:#999;margin-bottom:20px">
-        整个流程约需 3-5 分钟，请耐心等待
-      </p>
+      <div class="prog-card-title">⏳ 正在生成，请勿关闭页面</div>
+      <div class="prog-card-sub">全流程约需 3–5 分钟，请耐心等待</div>
 
       <div class="steps">
-        <div class="step-item" id="step-1">
-          <div class="step-icon pending" id="icon-1">1</div>
-          <div class="step-content">
-            <div class="step-label">分析产品图片</div>
-            <div class="step-desc" id="desc-1">GPT-4o 识别产品外观，生成白底图</div>
+        <div class="step">
+          <div class="step-icon wait" id="si-1">1</div>
+          <div class="step-body">
+            <div class="step-name">分析产品图片</div>
+            <div class="step-desc" id="sd-1">GPT-4o 识别产品，生成白底图</div>
           </div>
         </div>
-        <div class="step-item" id="step-2">
-          <div class="step-icon pending" id="icon-2">2</div>
-          <div class="step-content">
-            <div class="step-label">生成视频脚本</div>
-            <div class="step-desc" id="desc-2">GPT-4o 生成 TikTok 脚本和视频描述词</div>
+        <div class="step">
+          <div class="step-icon wait" id="si-2">2</div>
+          <div class="step-body">
+            <div class="step-name">生成视频脚本</div>
+            <div class="step-desc" id="sd-2">GPT-4o 生成 TikTok 脚本和视频描述词</div>
           </div>
         </div>
-        <div class="step-item" id="step-3">
-          <div class="step-icon pending" id="icon-3">3</div>
-          <div class="step-content">
-            <div class="step-label">AI 生成视频</div>
-            <div class="step-desc" id="desc-3">AI 渲染 9:16 短视频</div>
+        <div class="step">
+          <div class="step-icon wait" id="si-3">3</div>
+          <div class="step-body">
+            <div class="step-name">AI 生成视频</div>
+            <div class="step-desc" id="sd-3">渲染 9:16 竖版短视频</div>
           </div>
         </div>
-        <div class="step-item" id="step-4">
-          <div class="step-icon pending" id="icon-4">4</div>
-          <div class="step-content">
-            <div class="step-label">后处理</div>
-            <div class="step-desc" id="desc-4">添加字幕 / BGM</div>
+        <div class="step">
+          <div class="step-icon wait" id="si-4">4</div>
+          <div class="step-body">
+            <div class="step-name">后处理</div>
+            <div class="step-desc" id="sd-4">添加字幕 / 混入 BGM</div>
           </div>
         </div>
       </div>
 
-      <div class="error-box" id="error-box"></div>
+      <div class="err-box" id="err-box"></div>
     </div>
   </div>
 
-  <!-- ── 完成 / 下载 ── -->
-  <div id="result-section">
+  <!-- ══ 完成 ══ -->
+  <div id="done-section">
     <div class="card">
-      <div class="card-title" style="color:#34c759">
-        ✅ 视频生成完成！
+      <div class="done-banner">✅ 视频生成完成！</div>
+      <div class="done-info">
+        <strong>产品：</strong><span id="done-prod"></span><br>
+        规格：MP4 · 9:16 竖版 · 可直接发布 TikTok / 抖音 / Instagram Reels
       </div>
-
-      <div class="result-info">
-        <p>
-          <strong>产品：</strong><span id="result-product"></span><br>
-          视频规格：MP4 / 9:16 竖版<br>
-          可直接发布到 TikTok、抖音、Instagram Reels
-        </p>
-      </div>
-
-      <button class="download-btn" id="download-btn" onclick="downloadVideo()">
-        ⬇️ 下载视频
-      </button>
-
-      <button class="restart-btn" onclick="restartForm()">
-        重新生成另一个视频
-      </button>
+      <button class="btn-dl" onclick="dlVideo()">⬇ 下载视频</button>
+      <button class="btn-again" onclick="reset()">重新生成另一个视频</button>
+      <div class="done-note">视频已保存到历史记录，可随时重新下载</div>
     </div>
   </div>
 
-</div><!-- /container -->
+</div>
 
 <script>
-  let currentJobId = null;
-  let pollTimer = null;
-  let selectedService = 'seedance';
-  const TOTAL_STEPS = 4;
+  // ── 状态 ─────────────────────────────────────────────────
+  let chips = [];           // 已添加的卖点
+  let selSvc = 'seedance';
+  let jobId = null;
+  let timer = null;
+  const MAX_CHIPS = 10;
 
-  // ── 视频服务选择 ──────────────────────────────────────────
-  function selectService(service) {
-    selectedService = service;
-    document.getElementById('opt-seedance').classList.toggle('selected', service === 'seedance');
-    document.getElementById('opt-creatok').classList.toggle('selected', service === 'creatok');
-    const costTip = document.getElementById('cost-tip');
-    costTip.textContent = service === 'seedance'
-      ? '每次生成约花费 ¥0.9（豆包 Seedance）'
-      : '每次生成约花费 ¥2.2（Creatok）';
+  // ── 服务选择 ─────────────────────────────────────────────
+  function selectSvc(svc) {
+    selSvc = svc;
+    document.getElementById('svc-seed').classList.toggle('selected', svc === 'seedance');
+    document.getElementById('svc-crea').classList.toggle('selected', svc === 'creatok');
+    document.getElementById('cost-line').textContent =
+      svc === 'seedance' ? '每次约花费 ¥0.9（豆包 Seedance）' : '每次约花费 ¥2.2（Creatok）';
   }
 
-  // ── 图片上传处理 ──────────────────────────────────────────
-  const uploadArea = document.getElementById('upload-area');
-  const imageInput = document.getElementById('image-input');
+  // ── 图片上传 ─────────────────────────────────────────────
+  const zone  = document.getElementById('upload-zone');
+  const imgIn = document.getElementById('img-input');
 
-  uploadArea.addEventListener('dragover', e => {
-    e.preventDefault();
-    uploadArea.classList.add('drag-over');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) showPreview(f);
   });
-  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
-  uploadArea.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadArea.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) showPreview(file);
-  });
-  imageInput.addEventListener('change', () => {
-    if (imageInput.files[0]) showPreview(imageInput.files[0]);
-  });
+  imgIn.addEventListener('change', () => { if (imgIn.files[0]) showPreview(imgIn.files[0]); });
 
   function showPreview(file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      document.getElementById('image-preview').src = e.target.result;
-      document.getElementById('upload-placeholder').style.display = 'none';
-      document.getElementById('preview-wrap').style.display = 'flex';
+    const r = new FileReader();
+    r.onload = e => {
+      document.getElementById('img-preview').src = e.target.result;
+      document.getElementById('upload-ph').style.display = 'none';
+      document.getElementById('preview-zone').style.display = 'flex';
     };
-    reader.readAsDataURL(file);
+    r.readAsDataURL(file);
   }
 
-  function resetImage(e) {
+  function resetImg(e) {
     e.stopPropagation();
-    imageInput.value = '';
-    document.getElementById('image-preview').src = '';
-    document.getElementById('upload-placeholder').style.display = 'block';
-    document.getElementById('preview-wrap').style.display = 'none';
+    imgIn.value = '';
+    document.getElementById('img-preview').src = '';
+    document.getElementById('upload-ph').style.display = 'block';
+    document.getElementById('preview-zone').style.display = 'none';
+  }
+
+  // ── Chip 卖点输入 ─────────────────────────────────────────
+  const chipField = document.getElementById('chip-field');
+  const chipWrap  = document.getElementById('chip-wrap');
+
+  chipField.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === 'Tab') && chipField.value.trim()) {
+      e.preventDefault();
+      addChip(chipField.value.trim());
+      chipField.value = '';
+    }
+    // 退格删除最后一个 chip
+    if (e.key === 'Backspace' && chipField.value === '' && chips.length) {
+      removeChip(chips.length - 1);
+    }
+  });
+  chipField.addEventListener('blur', () => {
+    if (chipField.value.trim()) {
+      addChip(chipField.value.trim());
+      chipField.value = '';
+    }
+    // blur 时触发 AI 建议（如果产品名已填）
+    const name = document.getElementById('prod-name').value.trim();
+    if (name) autoSuggest(name);
+  });
+
+  // 产品名 blur 时触发 AI 建议
+  document.getElementById('prod-name').addEventListener('blur', () => {
+    const name = document.getElementById('prod-name').value.trim();
+    if (name) {
+      document.getElementById('ai-btn').disabled = false;
+      autoSuggest(name);
+    }
+  });
+
+  function addChip(text) {
+    if (chips.length >= MAX_CHIPS) return;
+    if (chips.includes(text)) return; // 去重
+    chips.push(text);
+    renderChips();
+    updateAIBtn();
+  }
+
+  function removeChip(idx) {
+    chips.splice(idx, 1);
+    renderChips();
+    updateAIBtn();
+  }
+
+  function renderChips() {
+    // 移除旧 chip 元素
+    chipWrap.querySelectorAll('.chip').forEach(el => el.remove());
+    // 移除旧 placeholder
+    chipWrap.querySelectorAll('.chip-placeholder').forEach(el => el.remove());
+
+    if (chips.length === 0) {
+      // 没有 chip 时显示 placeholder（通过 CSS input placeholder 实现，无需额外元素）
+      chipField.placeholder = '输入卖点，按回车添加…';
+    } else {
+      chipField.placeholder = '';
+    }
+
+    chips.forEach((text, i) => {
+      const el = document.createElement('div');
+      el.className = 'chip';
+      el.innerHTML = `${escHtml(text)}<span class="chip-del" onclick="removeChip(${i})">×</span>`;
+      chipWrap.insertBefore(el, chipField);
+    });
+
+    // 计数
+    const cnt = document.getElementById('chip-count');
+    cnt.textContent = `${chips.length} / ${MAX_CHIPS} 个卖点`;
+    cnt.className = 'chip-count' + (chips.length >= MAX_CHIPS ? ' warn' : '');
+  }
+
+  function updateAIBtn() {
+    const name = document.getElementById('prod-name').value.trim();
+    document.getElementById('ai-btn').disabled = !name;
   }
 
   // ── AI 卖点建议 ───────────────────────────────────────────
-  async function suggestSellingPoints() {
-    const productName = document.getElementById('product-name').value.trim();
-    if (!productName) { alert('请先填写产品名称'); return; }
+  let aiDebounce = null;
+  let lastSuggestName = '';
 
-    const existingText = document.getElementById('selling-points').value.trim();
-    const existingPoints = existingText
-      ? existingText.split('\n').map(l => l.trim()).filter(Boolean)
-      : [];
+  function autoSuggest(name) {
+    if (name === lastSuggestName) return; // 同名不重复请求
+    clearTimeout(aiDebounce);
+    aiDebounce = setTimeout(() => triggerAI(true), 300);
+  }
 
-    const btn = document.getElementById('suggest-btn');
+  async function triggerAI(auto = false) {
+    const name = document.getElementById('prod-name').value.trim();
+    if (!name) return;
+
+    lastSuggestName = name;
+
+    const spin = document.getElementById('ai-spin');
+    const btn  = document.getElementById('ai-btn');
+    spin.style.display = 'block';
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> 生成中...';
+    if (!auto) btn.textContent = '生成中…';
 
     try {
       const res = await fetch('/api/suggest-selling-points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_name: productName, existing_points: existingPoints })
+        body: JSON.stringify({ product_name: name, existing_points: chips }),
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || '请求失败');
-      }
-
+      if (!res.ok) throw new Error('请求失败');
       const data = await res.json();
       renderSuggestions(data.suggestions);
-
-    } catch (err) {
-      alert('AI 建议失败：' + err.message);
+    } catch (e) {
+      if (!auto) alert('AI 建议失败：' + e.message);
     } finally {
+      spin.style.display = 'none';
       btn.disabled = false;
-      btn.innerHTML = '<span>✨</span> AI 补充卖点建议';
+      btn.textContent = '重新获取建议';
     }
   }
 
-  function renderSuggestions(suggestions) {
-    const container = document.getElementById('suggestion-tags');
-    const hint = document.getElementById('suggestion-hint');
-
-    container.innerHTML = '';
-    if (!suggestions || !suggestions.length) {
-      hint.style.display = 'none';
-      return;
-    }
-
-    suggestions.forEach(s => {
-      const tag = document.createElement('span');
-      tag.className = 'suggestion-tag';
-      tag.textContent = s;
-      tag.onclick = () => appendSuggestion(s, tag);
-      container.appendChild(tag);
+  function renderSuggestions(list) {
+    const box = document.getElementById('sug-chips');
+    box.innerHTML = '';
+    (list || []).forEach(s => {
+      const el = document.createElement('span');
+      el.className = 'sug-chip';
+      el.textContent = s;
+      el.onclick = () => {
+        addChip(s);
+        el.classList.add('used');
+      };
+      box.appendChild(el);
     });
-    hint.style.display = 'block';
   }
 
-  function appendSuggestion(text, tagEl) {
-    const ta = document.getElementById('selling-points');
-    const current = ta.value.trim();
-    ta.value = current ? current + '\n' + text : text;
-    tagEl.style.opacity = '0.4';
-    tagEl.style.pointerEvents = 'none';
-  }
-
-  // ── 竞品文案分析 ──────────────────────────────────────────
-  function toggleCompetitor() {
-    const body = document.getElementById('comp-body');
-    const header = document.getElementById('comp-header');
+  // ── 竞品分析 ─────────────────────────────────────────────
+  function toggleAdv() {
+    const body   = document.getElementById('adv-body');
+    const toggle = document.getElementById('adv-toggle');
     body.classList.toggle('open');
-    header.classList.toggle('open');
+    toggle.classList.toggle('open');
   }
 
-  async function analyzeCompetitor() {
-    const text = document.getElementById('competitor-text').value.trim();
-    if (!text) { alert('请粘贴竞品文案'); return; }
+  async function analyzeComp() {
+    const text = document.getElementById('comp-text').value.trim();
+    if (!text) { alert('请先粘贴竞品文案'); return; }
 
-    const btn = document.getElementById('analyze-btn');
+    const btn = document.getElementById('comp-btn');
+    btn.textContent = '分析中…';
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> 分析中...';
 
     try {
       const res = await fetch('/api/analyze-competitor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text }),
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || '分析失败');
-      }
-
+      if (!res.ok) throw new Error('分析失败');
       const data = await res.json();
-      renderCompetitorResult(data);
 
-    } catch (err) {
-      alert('分析失败：' + err.message);
+      document.getElementById('comp-pts').innerHTML =
+        (data.selling_points || []).map(p =>
+          `<span class="cr-chip" onclick="addChip('${p.replace(/'/g,"\\'")}'); this.style.opacity='0.4'; this.style.pointerEvents='none'">${escHtml(p)}</span>`
+        ).join('');
+      document.getElementById('comp-hooks').innerHTML =
+        (data.hook_ideas || []).map(h => `<span class="cr-chip">${escHtml(h)}</span>`).join('');
+      document.getElementById('comp-summary').textContent = data.summary || '';
+      document.getElementById('comp-result').classList.add('show');
+
+    } catch (e) {
+      alert('分析失败：' + e.message);
     } finally {
+      btn.textContent = '🔍 重新分析';
       btn.disabled = false;
-      btn.innerHTML = '<span>🔍</span> 分析';
     }
   }
 
-  function renderCompetitorResult(data) {
-    const result = document.getElementById('comp-result');
-    result.classList.add('show');
+  // ── 开始生成 ─────────────────────────────────────────────
+  async function startGen() {
+    const imgFile = imgIn.files[0];
+    const name    = document.getElementById('prod-name').value.trim();
 
-    const pointsEl = document.getElementById('comp-points');
-    pointsEl.innerHTML = (data.selling_points || []).map(p =>
-      `<span class="cr-tag" onclick="appendSuggestion('${p.replace(/'/g,"\\'")}', this)">${p}</span>`
-    ).join('');
+    // 校验
+    if (!imgFile) { alert('请先上传产品图片'); return; }
+    if (!name)    { alert('请填写产品名称'); return; }
+    if (chips.length === 0) { alert('请至少添加一个卖点（输入后按回车）'); return; }
 
-    const hooksEl = document.getElementById('comp-hooks');
-    hooksEl.innerHTML = (data.hook_ideas || []).map(h =>
-      `<span class="cr-tag">${h}</span>`
-    ).join('');
+    const fd = new FormData();
+    fd.append('image', imgFile);
+    fd.append('product_name', name);
+    fd.append('selling_points', chips.join('\n'));
+    fd.append('video_service', selSvc);
+    fd.append('add_subtitle', document.getElementById('tog-sub').checked ? 'true' : 'false');
+    fd.append('add_bgm',      document.getElementById('tog-bgm').checked ? 'true' : 'false');
 
-    document.getElementById('comp-summary').textContent = data.summary || '';
-  }
-
-  // ── 开始生成 ──────────────────────────────────────────────
-  async function startGeneration() {
-    const imageFile = imageInput.files[0];
-    const productName = document.getElementById('product-name').value.trim();
-    const sellingPoints = document.getElementById('selling-points').value.trim();
-
-    if (!imageFile) { alert('请先上传产品图片'); return; }
-    if (!productName) { alert('请填写产品名称'); return; }
-    if (!sellingPoints) { alert('请至少填写一个卖点'); return; }
-
-    const addSubtitle = document.getElementById('toggle-subtitle').checked;
-    const addBgm = document.getElementById('toggle-bgm').checked;
-
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    formData.append('product_name', productName);
-    formData.append('selling_points', sellingPoints);
-    formData.append('video_service', selectedService);
-    formData.append('add_subtitle', addSubtitle ? 'true' : 'false');
-    formData.append('add_bgm', addBgm ? 'true' : 'false');
-
-    const btn = document.getElementById('generate-btn');
+    const btn = document.getElementById('gen-btn');
     btn.disabled = true;
-    btn.textContent = '提交中...';
+    btn.textContent = '提交中…';
 
     try {
-      const res = await fetch('/api/generate', { method: 'POST', body: formData });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || '提交失败');
-      }
+      const res = await fetch('/api/generate', { method: 'POST', body: fd });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || '提交失败'); }
       const data = await res.json();
-      currentJobId = data.job_id;
+      jobId = data.job_id;
 
       document.getElementById('form-section').style.display = 'none';
-      document.getElementById('progress-section').style.display = 'block';
+      document.getElementById('prog-section').style.display = 'block';
 
-      pollTimer = setInterval(pollStatus, 4000);
+      timer = setInterval(pollStatus, 4000);
       pollStatus();
 
-    } catch (err) {
+    } catch (e) {
       btn.disabled = false;
       btn.textContent = '开始生成视频';
-      alert('错误：' + err.message);
+      alert('错误：' + e.message);
     }
   }
 
-  // ── 轮询状态 ──────────────────────────────────────────────
+  // ── 轮询 ─────────────────────────────────────────────────
   async function pollStatus() {
-    if (!currentJobId) return;
+    if (!jobId) return;
     try {
-      const res = await fetch(`/api/status/${currentJobId}`);
+      const res = await fetch(`/api/status/${jobId}`);
       if (!res.ok) return;
-      const data = await res.json();
+      const d = await res.json();
 
-      updateSteps(data.step, data.status);
+      updateSteps(d.step, d.status, d.step_name);
 
-      if (data.status === 'success') {
-        clearInterval(pollTimer);
-        showResult(data.product_name);
-      } else if (data.status === 'failed') {
-        clearInterval(pollTimer);
-        showError(data.error || '生成失败，请重试');
+      if (d.status === 'success') {
+        clearInterval(timer);
+        showDone(d.product_name);
+      } else if (d.status === 'failed') {
+        clearInterval(timer);
+        showErr(d.error || '生成失败，请重试');
       }
-    } catch (e) { /* 网络错误，等下次轮询 */ }
+    } catch (_) {}
   }
 
-  function updateSteps(currentStep, status) {
-    for (let i = 1; i <= TOTAL_STEPS; i++) {
-      const icon = document.getElementById(`icon-${i}`);
-      const desc = document.getElementById(`desc-${i}`);
+  function updateSteps(cur, status, stepName) {
+    for (let i = 1; i <= 4; i++) {
+      const icon = document.getElementById(`si-${i}`);
+      const desc = document.getElementById(`sd-${i}`);
 
       icon.className = 'step-icon';
       desc.className = 'step-desc';
 
-      if (status === 'failed' && i === currentStep) {
-        icon.className += ' failed';
-        icon.textContent = '✕';
-      } else if (i < currentStep || (status === 'success' && i <= TOTAL_STEPS)) {
-        icon.className += ' done';
-        icon.textContent = '✓';
-      } else if (i === currentStep) {
-        icon.className += ' active';
-        icon.textContent = i;
-        desc.className += ' active';
+      if (status === 'failed' && i === cur) {
+        icon.className += ' error'; icon.textContent = '✕';
+      } else if (i < cur || status === 'success') {
+        icon.className += ' done'; icon.textContent = '✓';
+      } else if (i === cur) {
+        icon.className += ' active'; icon.textContent = i;
+        desc.className += ' live';
+        if (stepName) desc.textContent = stepName;
       } else {
         icon.textContent = i;
       }
     }
   }
 
-  // ── 完成 ──────────────────────────────────────────────────
-  function showResult(productName) {
-    updateSteps(TOTAL_STEPS, 'success');
-    document.getElementById('progress-section').style.display = 'none';
-    document.getElementById('result-section').style.display = 'block';
-    document.getElementById('result-product').textContent = productName || '';
+  function showDone(name) {
+    updateSteps(4, 'success', '');
+    document.getElementById('prog-section').style.display = 'none';
+    document.getElementById('done-section').style.display = 'block';
+    document.getElementById('done-prod').textContent = name || '';
   }
 
-  function showError(message) {
-    const box = document.getElementById('error-box');
+  function showErr(msg) {
+    const box = document.getElementById('err-box');
     box.style.display = 'block';
-    box.textContent = '❌ ' + message;
+    box.textContent = '❌ ' + msg;
   }
 
-  function downloadVideo() {
-    if (!currentJobId) return;
-    window.location.href = `/api/download/${currentJobId}`;
+  function dlVideo() {
+    if (jobId) window.location.href = `/api/download/${jobId}`;
   }
 
-  function restartForm() {
-    clearInterval(pollTimer);
-    currentJobId = null;
+  function reset() {
+    clearInterval(timer);
+    jobId = null; chips = [];
 
-    document.getElementById('product-name').value = '';
-    document.getElementById('selling-points').value = '';
-    document.getElementById('suggestion-tags').innerHTML = '';
-    document.getElementById('suggestion-hint').style.display = 'none';
-    document.getElementById('competitor-text').value = '';
+    // 重置表单
+    document.getElementById('prod-name').value = '';
+    renderChips();
+    document.getElementById('sug-chips').innerHTML = '';
+    document.getElementById('comp-text').value = '';
     document.getElementById('comp-result').classList.remove('show');
-    resetImage({ stopPropagation: () => {} });
+    resetImg({ stopPropagation: () => {} });
 
-    const btn = document.getElementById('generate-btn');
-    btn.disabled = false;
-    btn.textContent = '开始生成视频';
+    const btn = document.getElementById('gen-btn');
+    btn.disabled = false; btn.textContent = '开始生成视频';
 
-    document.getElementById('result-section').style.display = 'none';
-    document.getElementById('progress-section').style.display = 'none';
-    document.getElementById('error-box').style.display = 'none';
+    document.getElementById('done-section').style.display = 'none';
+    document.getElementById('prog-section').style.display = 'none';
+    document.getElementById('err-box').style.display = 'none';
     document.getElementById('form-section').style.display = 'block';
 
-    for (let i = 1; i <= TOTAL_STEPS; i++) {
-      const icon = document.getElementById(`icon-${i}`);
-      icon.className = 'step-icon pending';
-      icon.textContent = i;
-      document.getElementById(`desc-${i}`).className = 'step-desc';
+    for (let i = 1; i <= 4; i++) {
+      const ic = document.getElementById(`si-${i}`);
+      ic.className = 'step-icon wait'; ic.textContent = i;
+      document.getElementById(`sd-${i}`).className = 'step-desc';
     }
+
+    lastSuggestName = '';
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, m => (
+      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]
+    ));
   }
 </script>
 

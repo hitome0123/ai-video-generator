@@ -20,6 +20,7 @@ from .video_generator import VideoGenerator
 from .post_processor import PostProcessor
 from .competitor_analyzer import suggest_selling_points, analyze_competitor_text
 from . import database as db
+from . import batch_processor as bp
 
 
 app = FastAPI(title="AI Video Generator")
@@ -300,6 +301,96 @@ async def delete_history(job_id: str):
     jobs.pop(job_id, None)
 
     return {"status": "deleted"}
+
+
+@app.post("/api/batch")
+async def start_batch(
+    items: str = Body(..., embed=True, description='[{"product_name":"...","selling_points":["..."]}]'),
+    video_service: str = Body("seedance", embed=True),
+    add_subtitle: bool = Body(False, embed=True),
+    add_bgm: bool = Body(False, embed=True),
+):
+    """
+    启动批量视频生成任务
+
+    items 格式：[{"product_name": "产品名", "selling_points": ["卖点1", "卖点2"]}, ...]
+    """
+    import json as _json
+
+    if isinstance(items, str):
+        try:
+            items_list = _json.loads(items)
+        except Exception:
+            raise HTTPException(status_code=400, detail="items 格式错误，需为 JSON 数组")
+    else:
+        items_list = items
+
+    if not isinstance(items_list, list) or len(items_list) == 0:
+        raise HTTPException(status_code=400, detail="至少需要 1 个产品")
+    if len(items_list) > 20:
+        raise HTTPException(status_code=400, detail="单次批量最多 20 个产品")
+
+    for item in items_list:
+        if not item.get("product_name", "").strip():
+            raise HTTPException(status_code=400, detail="每个产品必须填写产品名称")
+        if not item.get("selling_points"):
+            raise HTTPException(status_code=400, detail=f"产品「{item.get('product_name')}」至少需要 1 个卖点")
+
+    if video_service not in ("seedance", "creatok"):
+        raise HTTPException(status_code=400, detail="video_service 只支持 seedance 或 creatok")
+
+    batch_id = bp.start_batch(
+        items=items_list,
+        video_service=video_service,
+        add_subtitle=add_subtitle,
+        add_bgm=add_bgm,
+    )
+    return {"batch_id": batch_id, "total": len(items_list)}
+
+
+@app.get("/api/batch/{batch_id}")
+async def get_batch_status(batch_id: str):
+    """查询批量任务进度"""
+    job = bp.get_batch(batch_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="批量任务不存在")
+
+    return {
+        "batch_id": job.batch_id,
+        "status": job.status,
+        "total": job.total,
+        "completed": job.completed,
+        "failed": job.failed,
+        "items": [
+            {
+                "item_id": item.item_id,
+                "product_name": item.product_name,
+                "status": item.status,
+                "error": item.error,
+            }
+            for item in job.items
+        ],
+    }
+
+
+@app.get("/api/batch/{batch_id}/download")
+async def download_batch(batch_id: str):
+    """下载批量任务的所有视频（ZIP 格式）"""
+    job = bp.get_batch(batch_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="批量任务不存在")
+    if job.status != "done":
+        raise HTTPException(status_code=400, detail="批量任务尚未完成")
+
+    zip_path = bp.create_zip(batch_id)
+    if not zip_path:
+        raise HTTPException(status_code=404, detail="没有成功生成的视频")
+
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename=f"batch_videos_{batch_id[:8]}.zip",
+    )
 
 
 @app.post("/api/suggest-selling-points")
